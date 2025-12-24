@@ -32,7 +32,6 @@ export class PinoLogger implements ILogger {
 
   constructor(pinoConfig?: PinoLoggerConfig) {
     const level = pinoConfig?.level || config.logger.level;
-    const environment = pinoConfig?.environment || config.server.nodeEnv;
 
     // Configuración base de Pino
     // IMPORTANTE: Mantener la configuración simple para no alterar el JSON que se envía a Loki
@@ -41,9 +40,7 @@ export class PinoLogger implements ILogger {
       level,
       // NO usar formatters personalizados que puedan alterar el formato JSON
       // pino-loki necesita el JSON puro de Pino
-      base: {
-        env: environment,
-      },
+      base: {},
       // Serializadores estándar de Pino (para errores, etc.)
       serializers: pino.stdSerializers,
     };
@@ -61,16 +58,16 @@ export class PinoLogger implements ILogger {
           throw new Error('pino-loki module not found');
         }
 
-        const lokiLabels: Record<string, string> = {
-          app: 'gestion-expedientes-cfe-server',
-          env: environment || 'dev',
-          service: 'api',
-        };
+        // Inicializar labels vacío - solo se usarán los del .env
+        const lokiLabels: Record<string, string> = {};
 
+        // Agregar labels directamente desde configuración (LOKI_LABELS del .env)
+        // Solo se usan los labels configurados explícitamente en .env
         if (pinoConfig.loki.labels) {
           for (const [key, value] of Object.entries(pinoConfig.loki.labels)) {
             const stringValue = value != null ? String(value) : '';
             if (stringValue && key) {
+              // Agregar labels tal como vienen del .env, sin normalización
               lokiLabels[key] = stringValue;
             }
           }
