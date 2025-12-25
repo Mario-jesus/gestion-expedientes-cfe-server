@@ -278,40 +278,42 @@ gestion-expedientes-cfe-server/
 │   ├── server.ts                           # Entry point (arranca el servidor)
 │   │
 │   ├── shared/                             # Módulos compartidos
+│   │   ├── config/                         # Configuración centralizada
+│   │   │   ├── env.ts                      # Carga y validación de variables de entorno
+│   │   │   ├── types.ts                    # Tipos de configuración
+│   │   │   └── index.ts                    # Exportación de config
+│   │   │
 │   │   ├── domain/                         # Interfaces y abstracciones del dominio
-│   │   │   ├── Entity.ts                   # Clase base para entidades
-│   │   │   ├── DomainEvent.ts              # Clase base para eventos de dominio
-│   │   │   ├── IDatabase.ts                # Interfaz de base de datos
-│   │   │   ├── IEventBus.ts                # Interfaz de bus de eventos
-│   │   │   ├── ILogger.ts                  # Interfaz de logger
+│   │   │   ├── entities/                   # Entidades base del dominio
+│   │   │   │   ├── Entity.ts               # Clase base para entidades
+│   │   │   │   └── DomainEvent.ts          # Clase base para eventos de dominio
+│   │   │   ├── ports/                      # Interfaces/contratos (Ports)
+│   │   │   │   └── output/                 # Output ports (Driven ports)
+│   │   │   │       ├── IDatabase.ts        # Interfaz de base de datos
+│   │   │   │       ├── IEventBus.ts        # Interfaz de bus de eventos
+│   │   │   │       └── ILogger.ts          # Interfaz de logger
 │   │   │   └── index.ts                    # Exportaciones
 │   │   │
 │   │   ├── infrastructure/                 # Implementaciones de infraestructura
-│   │   │   ├── bus/                        # Implementación del bus de eventos
-│   │   │   ├── config/                     # Configuración centralizada
-│   │   │   │   ├── env.ts                  # Carga y validación de variables de entorno
-│   │   │   │   ├── types.ts                # Tipos de configuración
-│   │   │   │   └── index.ts                # Exportación de config
-│   │   │   │
+│   │   │   ├── adapters/                   # Adaptadores (implementaciones de ports)
+│   │   │   │   └── output/                 # Output adapters (Driven adapters)
+│   │   │   │       ├── database/           # Adaptadores de base de datos
+│   │   │   │       │   ├── InMemoryDatabase.ts  # Base de datos en memoria
+│   │   │   │       │   └── mongo/          # Implementación MongoDB
+│   │   │   │       │       ├── mongoose.ts # Conexión y gestión de Mongoose
+│   │   │   │       │       ├── MongoDBDatabase.ts  # Implementación de IDatabase
+│   │   │   │       │       └── models/     # Registro centralizado de modelos
+│   │   │   │       │           └── index.ts
+│   │   │   │       ├── logger/             # Adaptadores de logger
+│   │   │   │       │   ├── PinoLogger.ts   # Logger con Pino
+│   │   │   │       │   └── loggerFactory.ts
+│   │   │   │       └── bus/                # Adaptadores de event bus
+│   │   │   │           └── InMemoryEventBus.ts
 │   │   │   ├── container/                  # Contenedor de inyección de dependencias (Awilix)
 │   │   │   │   └── container.ts            # Registro de dependencias
-│   │   │   │
-│   │   │   ├── database/                   # Implementaciones de base de datos
-│   │   │   │   ├── InMemoryDatabase.ts     # Base de datos en memoria (desarrollo/testing)
-│   │   │   │   └── mongo/                  # Implementación MongoDB
-│   │   │   │       ├── mongoose.ts         # Conexión y gestión de Mongoose
-│   │   │   │       ├── MongoDBDatabase.ts  # Implementación de IDatabase para MongoDB
-│   │   │   │       └── models/             # Registro centralizado de modelos
-│   │   │   │           └── index.ts        # Importación de todos los modelos
-│   │   │   │
 │   │   │   ├── http/                       # Middlewares HTTP
 │   │   │   │   ├── cors.ts                 # Configuración de CORS
 │   │   │   │   └── errorHandler.ts         # Manejo de errores
-│   │   │   │
-│   │   │   ├── logger/                     # Implementación de logger (Pino)
-│   │   │   │   ├── PinoLogger.ts           # Logger con Pino
-│   │   │   │   └── loggerFactory.ts        # Factory para crear loggers
-│   │   │   │
 │   │   │   └── index.ts                    # Exportaciones de infraestructura
 │   │   │
 │   │   └── utils/                          # Utilidades compartidas

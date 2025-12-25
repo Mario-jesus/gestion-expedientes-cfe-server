@@ -7,7 +7,7 @@
  * Construye la URI de MongoDB desde variables de entorno usando el módulo de configuración centralizado
  */
 import dotenv from 'dotenv';
-import { config } from './src/shared/infrastructure/config';
+import { config } from './src/shared/config';
 
 // Cargar variables de entorno
 dotenv.config();

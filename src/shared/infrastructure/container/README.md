@@ -7,7 +7,7 @@ Este módulo gestiona la inyección de dependencias usando Awilix.
 ### Resolver dependencias compartidas
 
 ```typescript
-import { resolve } from './shared/infrastructure';
+import { resolve } from '@/shared/infrastructure';
 
 // Resolver dependencias compartidas
 const database = resolve<IDatabase>('database');
@@ -24,9 +24,9 @@ logger.info('Application started');
 Cada módulo puede registrar sus propias dependencias:
 
 ```typescript
-import { register, asClass, asFunction } from './shared/infrastructure';
-import { MyRepository } from './modules/my-module/infrastructure/repositories/MyRepository';
-import { MyUseCase } from './modules/my-module/application/use-cases/MyUseCase';
+import { register, asClass, asFunction } from '@/shared/infrastructure';
+import { MyRepository } from '@/modules/my-module/infrastructure/repositories/MyRepository';
+import { MyUseCase } from '@/modules/my-module/application/use-cases/MyUseCase';
 
 // Registrar repositorio
 register('myRepository', asClass(MyRepository, { lifetime: Lifetime.SINGLETON }));
@@ -38,8 +38,8 @@ register('myUseCase', asClass(MyUseCase, { lifetime: Lifetime.SCOPED }));
 ### Usar dependencias en clases
 
 ```typescript
-import { resolve } from './shared/infrastructure';
-import { ILogger } from './shared/domain';
+import { resolve } from '@/shared/infrastructure';
+import { ILogger } from '@/shared/domain';
 
 export class MyService {
   private logger: ILogger;
@@ -89,7 +89,7 @@ export class MyService {
 Para testing, puedes limpiar el container:
 
 ```typescript
-import { clearContainer, registerSharedDependencies } from './shared/infrastructure';
+import { clearContainer, registerSharedDependencies } from '@/shared/infrastructure';
 
 beforeEach(() => {
   clearContainer();

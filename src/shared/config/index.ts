@@ -9,7 +9,7 @@ import type { AppConfig } from './types';
  * 
  * Uso:
  * ```typescript
- * import { config } from './shared/infrastructure/config';
+ * import { config } from '@/shared/config';
  * 
  * const port = config.server.port;
  * const dbUri = config.database.mongoUri;
