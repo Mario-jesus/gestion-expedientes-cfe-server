@@ -268,7 +268,13 @@ O abre en tu navegador: `http://localhost:4000/`
 
 ## 📁 Estructura del Proyecto
 
-El proyecto sigue una arquitectura **Domain-Driven Design (DDD)** con separación clara entre dominio, aplicación e infraestructura.
+El proyecto sigue una arquitectura combinada que integra tres patrones arquitectónicos:
+
+- **Domain-Driven Design (DDD)**: Organización del código alrededor del dominio del negocio, con Bounded Contexts, entidades y eventos de dominio
+- **Arquitectura Hexagonal (Ports & Adapters)**: Separación entre dominio (core) e infraestructura mediante ports (interfaces) y adapters (implementaciones)
+- **Event-Driven Architecture**: Comunicación entre módulos y actualización de estado mediante eventos de dominio y un Event Bus
+
+Esta combinación proporciona separación clara de responsabilidades, testabilidad y flexibilidad para evolucionar el sistema.
 
 ```
 gestion-expedientes-cfe-server/
@@ -321,17 +327,47 @@ gestion-expedientes-cfe-server/
 │   ├── modules/                             # Módulos de dominio (Bounded Contexts)
 │   │   └── {modulo}/                       # Ejemplo: collaborators, users, areas, etc.
 │   │       ├── domain/                      # Lógica de dominio
-│   │       │   ├── {Entity}.ts             # Entidades del dominio
-│   │       │   └── {Repository}.ts        # Interfaces de repositorios
+│   │       │   ├── entities/                # Entidades del dominio
+│   │       │   │   ├── Collaborator.ts      # Entidades específicas del módulo
+│   │       │   │   └── index.ts
+│   │       │   ├── ports/                   # Interfaces/contratos del módulo
+│   │       │   │   └── output/              # Output ports (lo que el módulo necesita)
+│   │       │   │       ├── ICollaboratorRepository.ts  # Interfaces de repositorios
+│   │       │   │       └── index.ts
+│   │       │   ├── events/                  # Eventos de dominio (opcional)
+│   │       │   │   ├── CollaboratorCreated.ts
+│   │       │   │   └── index.ts
+│   │       │   └── index.ts                 # Barrel export
 │   │       │
 │   │       ├── application/                 # Casos de uso (Application Layer)
-│   │       │   └── {UseCase}.ts            # Casos de uso
+│   │       │   ├── use-cases/               # Casos de uso
+│   │       │   │   ├── CreateCollaboratorUseCase.ts
+│   │       │   │   ├── UpdateCollaboratorUseCase.ts
+│   │       │   │   └── index.ts
+│   │       │   ├── event-handlers/          # Event Handlers (reaccionan a eventos de dominio)
+│   │       │   │   ├── CollaboratorCreatedHandler.ts  # Maneja evento CollaboratorCreated
+│   │       │   │   ├── CollaboratorUpdatedHandler.ts
+│   │       │   │   └── index.ts
+│   │       │   ├── dto/                     # Data Transfer Objects
+│   │       │   │   ├── CreateCollaboratorDTO.ts
+│   │       │   │   └── index.ts
+│   │       │   └── index.ts                 # Barrel export
 │   │       │
 │   │       └── infrastructure/              # Implementaciones de infraestructura
-│   │           ├── persistence/             # Persistencia
-│   │           │   └── {Entity}Model.ts     # Modelos de Mongoose
-│   │           └── http/                    # Controladores HTTP
-│   │               └── {Entity}Controller.ts
+│   │           ├── adapters/
+│   │           │   ├── output/              # Output adapters (implementaciones)
+│   │           │   │   ├── persistence/     # Repositorios
+│   │           │   │   │   ├── CollaboratorRepository.ts  # Implementa ICollaboratorRepository
+│   │           │   │   │   ├── CollaboratorModel.ts       # Modelo de Mongoose
+│   │           │   │   │   └── index.ts
+│   │           │   │   └── index.ts
+│   │           │   └── input/               # Input adapters (controllers)
+│   │           │       ├── http/
+│   │           │       │   ├── CollaboratorController.ts
+│   │           │       │   ├── routes.ts    # Rutas del módulo
+│   │           │       │   └── index.ts
+│   │           │       └── index.ts
+│   │           └── index.ts                 # Barrel export
 │   │
 │   └── migrations/                          # Migraciones de base de datos
 │       └── {timestamp}_{nombre}.ts          # Archivos de migración
@@ -352,16 +388,49 @@ gestion-expedientes-cfe-server/
 ### Descripción de Carpetas Principales
 
 - **`src/shared/domain/`**: Interfaces y abstracciones que definen el contrato del dominio (sin implementaciones)
-- **`src/shared/infrastructure/`**: Implementaciones concretas de infraestructura (bases de datos, loggers, HTTP, etc.)
-- **`src/modules/`**: Módulos de negocio organizados por dominio (cada módulo es un Bounded Context)
+  - `entities/`: Entidades base del dominio (Entity, DomainEvent)
+  - `ports/output/`: Interfaces de servicios externos (IDatabase, ILogger, IEventBus)
+- **`src/shared/infrastructure/`**: Implementaciones concretas de infraestructura compartida
+  - `adapters/output/`: Adaptadores que implementan los ports compartidos (database, logger, eventBus)
+  - `container/`: Contenedor de inyección de dependencias (Awilix)
+  - `http/`: Middlewares HTTP compartidos (CORS, error handling)
+- **`src/modules/{modulo}/`**: Módulos de negocio organizados por dominio (cada módulo es un Bounded Context)
+  - `domain/`: Entidades, ports, eventos e interfaces específicas del módulo
+  - `application/`: Casos de uso, event handlers y DTOs (orquestación de la lógica)
+  - `infrastructure/adapters/`: Implementaciones (repositorios, controllers)
 - **`src/migrations/`**: Scripts de migración de base de datos usando `ts-migrate-mongoose`
 - **`config/`**: Archivos de configuración adicionales
+
+## 🏗️ Principios Arquitectónicos
+
+### Domain-Driven Design (DDD)
+- **Bounded Contexts**: Cada módulo (`collaborators`, `users`, etc.) es un contexto acotado
+- **Entidades de Dominio**: Modelos ricos con lógica de negocio
+- **Eventos de Dominio**: Cambios de estado se comunican mediante eventos
+- **Agregados**: Entidades con consistencia transaccional
+
+### Arquitectura Hexagonal (Ports & Adapters)
+- **Ports (Interfaces)**: Definidos en `domain/ports/` - contratos que el dominio necesita
+- **Adapters (Implementaciones)**: En `infrastructure/adapters/` - implementaciones concretas
+- **Inversión de Dependencias**: El dominio no depende de infraestructura, la infraestructura depende del dominio
+- **Testabilidad**: Fácil mockear ports para testing
+
+### Event-Driven Architecture
+- **Event Bus**: Sistema centralizado para publicar y suscribirse a eventos (`IEventBus`)
+- **Eventos de Dominio**: Representan hechos relevantes del negocio (definidos en `domain/events/`)
+- **Desacoplamiento**: Módulos se comunican mediante eventos sin conocer implementaciones
+- **Event Handlers**: Suscriptores que reaccionan a eventos, ubicados en `application/event-handlers/`
+  - Orquestan casos de uso, llaman a repositorios, servicios externos, etc.
+  - Algunos handlers muy específicos con lógica pura de dominio pueden ir en `domain/`
 
 ## 🔧 Tecnologías Utilizadas
 
 - **Node.js** - Runtime de JavaScript
 - **Express** - Framework web para Node.js
 - **TypeScript** - Superset de JavaScript con tipado estático
+- **Awilix** - Contenedor de inyección de dependencias
+- **MongoDB/Mongoose** - Base de datos y ODM
+- **Pino** - Logger estructurado
 - **dotenv** - Manejo de variables de entorno
 - **cors** - Middleware para habilitar CORS
 
