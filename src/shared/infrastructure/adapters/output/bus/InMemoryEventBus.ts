@@ -1,7 +1,6 @@
 import { EventEmitter } from 'events';
-import { IEventBus } from '../../domain/IEventBus';
-import { DomainEvent } from '../../domain/DomainEvent';
-import { ILogger } from '../../domain/ILogger';
+import { IEventBus, ILogger } from '../../../../domain/ports/output';
+import { DomainEvent } from '../../../../domain/entities/DomainEvent';
 
 /**
  * Implementación en memoria del Event Bus usando EventEmitter de Node.js

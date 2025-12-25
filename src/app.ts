@@ -1,7 +1,7 @@
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import { resolve } from './shared/infrastructure';
-import { config } from './shared/infrastructure/config';
+import { config } from './shared/config';
 import { buildCorsOptions } from './shared/infrastructure/http/cors';
 import { ILogger } from './shared/domain';
 import { errorHandler, notFoundHandler } from './shared/infrastructure';

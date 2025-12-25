@@ -1,6 +1,6 @@
-import { ILogger } from '../../domain/ILogger';
+import { ILogger } from '../../../../domain/ports/output';
+import { config } from '../../../../config';
 import { PinoLogger, PinoLoggerConfig } from './PinoLogger';
-import { config } from '../config';
 
 export interface LoggerFactoryConfig {
   pino?: PinoLoggerConfig | undefined;

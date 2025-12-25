@@ -1,9 +1,9 @@
 import { createContainer, asClass, asFunction, InjectionMode, Lifetime } from 'awilix';
-import { InMemoryDatabase } from '../database/InMemoryDatabase';
-import { MongoDBDatabase } from '../database/mongo/MongoDBDatabase';
-import { InMemoryEventBus } from '../bus/InMemoryEventBus';
-import { createLoggerFromEnv } from '../logger/loggerFactory';
-import { config } from '../config';
+import { config } from '../../config';
+import { InMemoryDatabase } from '../adapters/output/database/InMemoryDatabase';
+import { MongoDBDatabase } from '../adapters/output/database/mongo/MongoDBDatabase';
+import { InMemoryEventBus } from '../adapters/output/bus/InMemoryEventBus';
+import { createLoggerFromEnv } from '../adapters/output/logger/loggerFactory';
 
 /**
  * Container de Awilix para inyección de dependencias

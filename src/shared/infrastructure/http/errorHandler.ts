@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { ILogger } from '../../domain/ILogger';
-import { config } from '../config';
+import { ILogger } from '../../domain/ports/output/ILogger';
+import { config } from '../../config';
 
 /**
  * Middleware global para manejo de errores

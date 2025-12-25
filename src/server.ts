@@ -1,6 +1,6 @@
 import app from './app';
 import { resolve } from './shared/infrastructure';
-import { config } from './shared/infrastructure/config';
+import { config } from './shared/config';
 import { ILogger, IDatabase } from './shared/domain';
 import { Server } from 'http';
 

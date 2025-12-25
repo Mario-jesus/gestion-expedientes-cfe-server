@@ -1,4 +1,4 @@
-import { IDatabase } from '../../domain/IDatabase';
+import { IDatabase } from '../../../../domain/ports/output';
 
 /**
  * Implementación completamente en memoria de base de datos

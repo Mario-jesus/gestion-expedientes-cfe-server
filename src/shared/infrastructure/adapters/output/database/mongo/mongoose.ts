@@ -1,6 +1,6 @@
 import mongoose, { Connection } from 'mongoose';
-import { ILogger } from '../../../domain/ILogger';
-import { config } from '../../config';
+import { ILogger } from '../../../../../domain/ports/output';
+import { config } from '../../../../../config';
 
 // IMPORTANTE: Importar todos los modelos ANTES de cualquier otra cosa
 // Esto asegura que los modelos estén registrados cuando se use la conexión

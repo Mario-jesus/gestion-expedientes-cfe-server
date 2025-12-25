@@ -1,5 +1,5 @@
 import type { CorsOptions } from 'cors';
-import type { CorsConfig } from '../config/types';
+import type { CorsConfig } from '../../config/types';
 
 /**
  * Construye las opciones de CORS a partir de la configuración centralizada

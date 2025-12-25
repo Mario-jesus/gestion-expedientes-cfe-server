@@ -1,5 +1,4 @@
-import { IDatabase } from '../../../domain/IDatabase';
-import { ILogger } from '../../../domain/ILogger';
+import { IDatabase, ILogger } from '../../../../../domain/ports/output';
 import { connectMongoose, disconnectMongoose, getConnection, isConnected as mongooseIsConnected } from './mongoose';
 
 /**

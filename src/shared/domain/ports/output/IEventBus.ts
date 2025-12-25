@@ -1,4 +1,4 @@
-import { DomainEvent } from './DomainEvent';
+import { DomainEvent } from '../../entities/DomainEvent';
 
 /**
  * Interfaz para el Event Bus

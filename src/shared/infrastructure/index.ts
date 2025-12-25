@@ -3,18 +3,18 @@
  */
 
 // Configuración centralizada
-export { config } from './config';
-export type { AppConfig, DatabaseConfig, ServerConfig, LoggerConfig, CorsConfig } from './config';
+export { config } from '../config';
+export type { AppConfig, DatabaseConfig, ServerConfig, LoggerConfig, CorsConfig } from '../config';
 
 // Database
-export * from './database';
+export * from './adapters/output/database';
 
 // Logger
-export { PinoLogger, type PinoLoggerConfig } from './logger/PinoLogger';
-export { createLogger, createLoggerFromEnv, type LoggerFactoryConfig } from './logger/loggerFactory';
+export { PinoLogger, type PinoLoggerConfig } from './adapters/output/logger/PinoLogger';
+export { createLogger, createLoggerFromEnv, type LoggerFactoryConfig } from './adapters/output/logger/loggerFactory';
 
 // Event Bus
-export { InMemoryEventBus } from './bus/InMemoryEventBus';
+export { InMemoryEventBus } from './adapters/output/bus/InMemoryEventBus';
 
 // HTTP Middlewares
 export { errorHandler } from './http/errorHandler';
