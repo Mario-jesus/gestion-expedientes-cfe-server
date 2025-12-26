@@ -356,10 +356,15 @@ gestion-expedientes-cfe-server/
 │   │       └── infrastructure/              # Implementaciones de infraestructura
 │   │           ├── adapters/
 │   │           │   ├── output/              # Output adapters (implementaciones)
-│   │           │   │   ├── persistence/     # Repositorios
-│   │           │   │   │   ├── CollaboratorRepository.ts  # Implementa ICollaboratorRepository
-│   │           │   │   │   ├── CollaboratorModel.ts       # Modelo de Mongoose
-│   │           │   │   │   └── index.ts
+│   │           │   │   ├── database/        # Base de datos MongoDB
+│   │           │   │   │   └── mongo/
+│   │           │   │   │       ├── schemas/          # Esquemas/modelos de Mongoose
+│   │           │   │   │       │   ├── {Entity}Schema.ts  # Schema y Model de Mongoose
+│   │           │   │   │       │   └── index.ts
+│   │           │   │   │       ├── persistence/      # Repositorios (implementaciones)
+│   │           │   │   │       │   ├── CollaboratorRepository.ts  # Implementa ICollaboratorRepository
+│   │           │   │   │       │   └── index.ts
+│   │           │   │   │       └── index.ts          # Barrel export del módulo
 │   │           │   │   └── index.ts
 │   │           │   └── input/               # Input adapters (controllers)
 │   │           │       ├── http/

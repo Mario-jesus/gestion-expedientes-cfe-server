@@ -1,10 +1,19 @@
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
-import { resolve } from './shared/infrastructure';
+import { resolve, container } from './shared/infrastructure';
 import { config } from './shared/config';
 import { buildCorsOptions } from './shared/infrastructure/http/cors';
 import { ILogger } from './shared/domain';
 import { errorHandler, notFoundHandler } from './shared/infrastructure';
+
+// Registrar módulos
+import { registerUsersModule } from './modules/users/infrastructure/container';
+import { UserController } from './modules/users/infrastructure/adapters/input/http';
+import { createUserRoutes } from './modules/users/infrastructure/adapters/input/http';
+
+// Registrar módulo users en el contenedor de DI
+// Esto debe hacerse antes de resolver cualquier dependencia del módulo
+registerUsersModule(container);
 
 // Resolver logger del container
 const logger = resolve<ILogger>('logger');
@@ -39,6 +48,17 @@ app.get('/', (_req: Request, res: Response) => {
     version: '1.0.0'
   });
 });
+
+// ============================================
+// RUTAS DE MÓDULOS
+// ============================================
+
+// Rutas del módulo users
+const userController = resolve<UserController>('userController');
+const userRoutes = createUserRoutes(userController);
+app.use('/api/v1/users', userRoutes);
+
+logger.debug('Module routes registered');
 
 // Manejo de rutas no encontradas
 app.use(notFoundHandler);

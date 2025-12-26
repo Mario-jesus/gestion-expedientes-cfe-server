@@ -193,7 +193,7 @@ Aunque las migraciones están centralizadas en `src/migrations/`, se recomienda 
 - `users-initial.ts` - Migración del módulo de usuarios
 - `collaborators-add-indexes.ts` - Migración adicional de colaboradores
 
-Los modelos de Mongoose se organizan por módulo:
+Los modelos de Mongoose y repositorios se organizan por módulo:
 
 ```
 src/
@@ -206,21 +206,35 @@ src/
 │                       └── models/
 │                           └── index.ts  # Registro centralizado de modelos
 └── modules/
-    └── collaborators/
+    └── {modulo}/
         └── infrastructure/
-            └── persistence/
-                └── CollaboratorModel.ts  # Schema y Model de Mongoose
+            └── adapters/
+                └── output/
+                    └── database/
+                        └── mongo/
+                            ├── schemas/          # Esquemas/modelos del módulo
+                            │   ├── {Entity}Schema.ts  # Schema y Model de Mongoose
+                            │   └── index.ts       # Barrel export de schemas
+                            ├── persistence/      # Repositorios del módulo
+                            │   ├── {Entity}Repository.ts  # Implementa I{Entity}Repository
+                            │   └── index.ts
+                            └── index.ts          # Barrel export del módulo
 ```
 
 ### Registro de Modelos
 
-Todos los modelos deben ser importados en `src/shared/infrastructure/adapters/output/database/mongo/models/index.ts` para que Mongoose los registre automáticamente:
+Todos los esquemas deben ser importados en `src/shared/infrastructure/adapters/output/database/mongo/models/index.ts` para que Mongoose los registre automáticamente:
 
 ```typescript
 // src/shared/infrastructure/adapters/output/database/mongo/models/index.ts
-import '../../../../../../modules/collaborators/infrastructure/persistence/CollaboratorModel';
-import '../../../../../../modules/users/infrastructure/persistence/UserModel';
+// Módulo: collaborators
+import '../../../../../../modules/collaborators/infrastructure/adapters/output/database/mongo';
+
+// Módulo: users
+import '../../../../../../modules/users/infrastructure/adapters/output/database/mongo';
 ```
+
+Cada módulo tiene su propio barrel export (`mongo/index.ts`) que importa todos los schemas del módulo, y el registro centralizado importa estos barrel exports.
 
 Este archivo se importa automáticamente en `mongoose.ts` antes de establecer la conexión, asegurando que todos los modelos estén disponibles.
 
