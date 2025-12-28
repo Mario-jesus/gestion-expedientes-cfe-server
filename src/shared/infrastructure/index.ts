@@ -19,6 +19,9 @@ export { InMemoryEventBus } from './adapters/output/bus/InMemoryEventBus';
 // HTTP Middlewares
 export { errorHandler } from './http/errorHandler';
 export { notFoundHandler } from './http/notFoundHandler';
+export { authenticate, authorize, createRateLimiter } from './http/middleware';
+export type { RateLimitConfig } from './http/middleware';
+export type { AuthenticatedRequest, AuthenticatedUser } from './http/types';
 export { buildCorsOptions } from './http/cors';
 
 // Container (DI)

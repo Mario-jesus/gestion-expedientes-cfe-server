@@ -18,4 +18,4 @@ import type { AppConfig } from './types';
 export const config: AppConfig = loadConfig();
 
 // Re-exportar tipos para conveniencia
-export type { AppConfig, DatabaseConfig, ServerConfig, LoggerConfig, CorsConfig } from './types';
+export type { AppConfig, DatabaseConfig, ServerConfig, LoggerConfig, CorsConfig, SecurityConfig } from './types';

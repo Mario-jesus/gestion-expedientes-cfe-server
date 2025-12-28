@@ -10,10 +10,18 @@ import { errorHandler, notFoundHandler } from './shared/infrastructure';
 import { registerUsersModule } from './modules/users/infrastructure/container';
 import { UserController } from './modules/users/infrastructure/adapters/input/http';
 import { createUserRoutes } from './modules/users/infrastructure/adapters/input/http';
+import { registerAuthModule } from './modules/auth/infrastructure/container';
+import { AuthController } from './modules/auth/infrastructure/adapters/input/http';
+import { createAuthRoutes } from './modules/auth/infrastructure/adapters/input/http';
+import { ITokenService } from './modules/auth/domain/ports/output/ITokenService';
+import { TokenVerifierAdapter } from './modules/auth/infrastructure/adapters/output/token/TokenVerifierAdapter';
+import { ITokenVerifier } from './shared/infrastructure/http/middleware/types';
 
-// Registrar módulo users en el contenedor de DI
+// Registrar módulos en el contenedor de DI
+// Orden importante: primero users (porque auth depende de userRepository y passwordHasher)
 // Esto debe hacerse antes de resolver cualquier dependencia del módulo
 registerUsersModule(container);
+registerAuthModule(container);
 
 // Resolver logger del container
 const logger = resolve<ILogger>('logger');
@@ -53,10 +61,18 @@ app.get('/', (_req: Request, res: Response) => {
 // RUTAS DE MÓDULOS
 // ============================================
 
+// Rutas del módulo auth
+const authController = resolve<AuthController>('authController');
+const tokenService = resolve<ITokenService>('tokenService');
+// Crear adaptador para convertir ITokenService a ITokenVerifier (para shared)
+const tokenVerifier: ITokenVerifier = new TokenVerifierAdapter(tokenService);
+const authRoutes = createAuthRoutes(authController, tokenVerifier, logger);
+app.use('/api/auth', authRoutes);
+
 // Rutas del módulo users
 const userController = resolve<UserController>('userController');
-const userRoutes = createUserRoutes(userController);
-app.use('/api/v1/users', userRoutes);
+const userRoutes = createUserRoutes(userController, tokenVerifier, logger);
+app.use('/api/users', userRoutes);
 
 logger.debug('Module routes registered');
 

@@ -1,4 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
+import { ILogger } from '@shared/domain';
+import { AuthenticatedRequest } from '@shared/infrastructure';
 import { ICreateUserUseCase } from '@modules/users/application/ports/input/ICreateUserUseCase';
 import { IGetUserByIdUseCase } from '@modules/users/application/ports/input/IGetUserByIdUseCase';
 import { IListUsersUseCase } from '@modules/users/application/ports/input/IListUsersUseCase';
@@ -12,7 +14,6 @@ import { UpdateUserDTO } from '@modules/users/application/dto/UpdateUserDTO';
 import { ListUsersDTO } from '@modules/users/application/dto/ListUsersDTO';
 import { ChangePasswordDTO } from '@modules/users/application/dto/ChangePasswordDTO';
 import { UserRole } from '@modules/users/domain/enums/UserRole';
-import { ILogger } from '@shared/domain';
 
 /**
  * Controller HTTP para la gestión de usuarios
@@ -42,20 +43,21 @@ export class UserController {
 
   /**
    * Obtiene el ID del usuario autenticado desde el request
-   * TODO: Implementar cuando tengamos middleware de autenticación
-   * Por ahora retorna undefined o se obtiene de un header temporal
+   * El request debe ser AuthenticatedRequest (después del middleware authenticate)
    */
-  private getCurrentUserId(req: Request): string | undefined {
-    // TODO: Cuando tengamos middleware de autenticación, obtener de req.user.id
-    // return (req as any).user?.id;
-    return req.headers['x-user-id'] as string | undefined;
+  private getCurrentUserId(req: Request | AuthenticatedRequest): string | undefined {
+    if ('user' in req && req.user) {
+      return req.user.id;
+    }
+    return undefined;
   }
 
   /**
    * POST /users
    * Crea un nuevo usuario
+   * Requiere autenticación y rol de administrador
    */
-  async create(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async create(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const dto: CreateUserDTO = req.body;
       const createdBy = this.getCurrentUserId(req);
@@ -85,8 +87,10 @@ export class UserController {
   /**
    * GET /users/:id
    * Obtiene un usuario por su ID
+   * Requiere autenticación
+   * Permite al mismo usuario ver su propio perfil o a un administrador ver cualquier perfil
    */
-  async getById(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getById(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const id = req.params.id as string;
       const performedBy = this.getCurrentUserId(req);
@@ -104,8 +108,9 @@ export class UserController {
   /**
    * GET /users
    * Lista usuarios con filtros y paginación
+   * Requiere autenticación y rol de administrador
    */
-  async list(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async list(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       // Validar y convertir role a UserRole si está presente
       let role: UserRole | undefined;
@@ -157,8 +162,9 @@ export class UserController {
   /**
    * PUT /users/:id
    * Actualiza un usuario (actualización completa)
+   * Requiere autenticación y rol de administrador
    */
-  async update(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async update(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const id = req.params.id as string;
       const dto: UpdateUserDTO = req.body;
@@ -177,8 +183,9 @@ export class UserController {
   /**
    * PATCH /users/:id
    * Actualiza parcialmente un usuario (misma lógica que PUT)
+   * Requiere autenticación y rol de administrador
    */
-  async partialUpdate(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async partialUpdate(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const id = req.params.id as string;
       const dto: UpdateUserDTO = req.body;
@@ -197,8 +204,9 @@ export class UserController {
   /**
    * DELETE /users/:id
    * Elimina un usuario
+   * Requiere autenticación y rol de administrador
    */
-  async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async delete(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const id = req.params.id as string;
       const performedBy = this.getCurrentUserId(req);
@@ -232,8 +240,9 @@ export class UserController {
   /**
    * POST /users/:id/activate
    * Activa un usuario
+   * Requiere autenticación y rol de administrador
    */
-  async activate(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async activate(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const id = req.params.id as string;
       const performedBy = this.getCurrentUserId(req);
@@ -256,8 +265,9 @@ export class UserController {
   /**
    * POST /users/:id/deactivate
    * Desactiva un usuario
+   * Requiere autenticación y rol de administrador
    */
-  async deactivate(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async deactivate(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const id = req.params.id as string;
       const performedBy = this.getCurrentUserId(req);
@@ -280,8 +290,10 @@ export class UserController {
   /**
    * POST /users/:id/change-password
    * Cambia la contraseña de un usuario
+   * Requiere autenticación
+   * Permite al mismo usuario cambiar su propia contraseña o a un administrador cambiar cualquier contraseña
    */
-  async changePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async changePassword(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const id = req.params.id as string;
       const dto: ChangePasswordDTO = req.body;

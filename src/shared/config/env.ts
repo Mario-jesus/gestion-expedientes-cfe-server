@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import type { LoggerConfig } from './types';
+import type { LoggerConfig, SecurityConfig } from './types';
 
 // Cargar variables de entorno desde .env
 dotenv.config();
@@ -172,6 +172,104 @@ function getLoggerConfig() {
 }
 
 /**
+ * Lee y valida las variables de entorno de seguridad (JWT)
+ */
+function getSecurityConfig() {
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret || jwtSecret.trim().length === 0) {
+    throw new Error(
+      'JWT_SECRET is required and cannot be empty. Set a strong secret key in your .env file.'
+    );
+  }
+
+  // Validar que el secret tenga al menos 32 caracteres (recomendación de seguridad)
+  if (jwtSecret.length < 32) {
+    throw new Error(
+      `JWT_SECRET must be at least 32 characters long for security. Current length: ${jwtSecret.length}`
+    );
+  }
+
+  // Access token expiration (default: 1 hora)
+  const jwtExpiresIn = process.env.JWT_EXPIRES_IN || process.env.JWT_ACCESS_TOKEN_EXPIRES_IN || '1h';
+
+  // Validar formato básico (debe ser número seguido de unidad: s, m, h, d)
+  const expiresInPattern = /^(\d+)([smhd])$|^\d+$/;
+  if (!expiresInPattern.test(jwtExpiresIn)) {
+    throw new Error(
+      `Invalid JWT_EXPIRES_IN format: ${jwtExpiresIn}. Must be a number followed by unit (s, m, h, d) or just a number in seconds. Examples: "1h", "3600", "7d"`
+    );
+  }
+
+  // Refresh token secret (puede ser el mismo que JWT_SECRET o diferente)
+  const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET || jwtSecret;
+
+  // Validar que el refresh secret tenga al menos 32 caracteres
+  if (jwtRefreshSecret.length < 32) {
+    throw new Error(
+      `JWT_REFRESH_SECRET must be at least 32 characters long for security. Current length: ${jwtRefreshSecret.length}`
+    );
+  }
+
+  // Refresh token expiration (default: 7 días)
+  const jwtRefreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN || process.env.JWT_REFRESH_TOKEN_EXPIRES_IN || '7d';
+
+  // Validar formato básico
+  if (!expiresInPattern.test(jwtRefreshExpiresIn)) {
+    throw new Error(
+      `Invalid JWT_REFRESH_EXPIRES_IN format: ${jwtRefreshExpiresIn}. Must be a number followed by unit (s, m, h, d) or just a number in seconds. Examples: "7d", "604800"`
+    );
+  }
+
+  // Configuración de rate limiting (opcional)
+  const rateLimitConfig: SecurityConfig['rateLimit'] = {
+    login: {
+      // Default: 15 minutos (900000 ms), máximo 5 intentos
+      windowMs: parseInt(process.env.RATE_LIMIT_LOGIN_WINDOW_MS || '900000', 10),
+      maxAttempts: parseInt(process.env.RATE_LIMIT_LOGIN_MAX_ATTEMPTS || '5', 10),
+    },
+    refresh: {
+      // Default: 15 minutos (900000 ms), máximo 10 intentos
+      windowMs: parseInt(process.env.RATE_LIMIT_REFRESH_WINDOW_MS || '900000', 10),
+      maxAttempts: parseInt(process.env.RATE_LIMIT_REFRESH_MAX_ATTEMPTS || '10', 10),
+    },
+  };
+
+  // Validar que windowMs sea positivo
+  if (rateLimitConfig.login.windowMs <= 0) {
+    throw new Error(
+      `Invalid RATE_LIMIT_LOGIN_WINDOW_MS: ${process.env.RATE_LIMIT_LOGIN_WINDOW_MS}. Must be a positive number.`
+    );
+  }
+  if (rateLimitConfig.refresh.windowMs <= 0) {
+    throw new Error(
+      `Invalid RATE_LIMIT_REFRESH_WINDOW_MS: ${process.env.RATE_LIMIT_REFRESH_WINDOW_MS}. Must be a positive number.`
+    );
+  }
+
+  // Validar que maxAttempts sea positivo
+  if (rateLimitConfig.login.maxAttempts <= 0) {
+    throw new Error(
+      `Invalid RATE_LIMIT_LOGIN_MAX_ATTEMPTS: ${process.env.RATE_LIMIT_LOGIN_MAX_ATTEMPTS}. Must be a positive number.`
+    );
+  }
+  if (rateLimitConfig.refresh.maxAttempts <= 0) {
+    throw new Error(
+      `Invalid RATE_LIMIT_REFRESH_MAX_ATTEMPTS: ${process.env.RATE_LIMIT_REFRESH_MAX_ATTEMPTS}. Must be a positive number.`
+    );
+  }
+
+  return {
+    jwt: {
+      secret: jwtSecret,
+      expiresIn: jwtExpiresIn,
+      refreshSecret: jwtRefreshSecret,
+      refreshExpiresIn: jwtRefreshExpiresIn,
+    },
+    rateLimit: rateLimitConfig,
+  };
+}
+
+/**
  * Lee y valida las variables de entorno de CORS
  */
 function getCorsConfig() {
@@ -270,6 +368,7 @@ export function loadConfig() {
       server: getServerConfig(),
       logger: getLoggerConfig(),
       cors: getCorsConfig(),
+      security: getSecurityConfig(),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';

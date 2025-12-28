@@ -20,21 +20,22 @@ export function buildCorsOptions(corsConfig: CorsConfig): CorsOptions {
   } else if (corsConfig.origins.length === 0) {
     // Si no hay orígenes configurados, permitir todos (fallback)
     options.origin = true;
-  } else if (corsConfig.origins.length === 1) {
-    // Un solo origen
-    options.origin = corsConfig.origins[0];
   } else {
-    // Múltiples orígenes - usar función de validación
+    // Un solo origen o múltiples orígenes - usar función de validación
+    // Esto permite control explícito sobre peticiones sin origin (herramientas de desarrollo)
     options.origin = (origin, callback) => {
+      // Permitir requests sin origin (ej: Postman, Insomnia, curl, herramientas de desarrollo)
+      // Esto es útil para desarrollo y testing, pero en producción deberías considerar
+      // restringir esto si quieres forzar que todas las peticiones vengan de navegadores
       if (!origin) {
-        // Permitir requests sin origin (ej: Postman, curl)
         return callback(null, true);
       }
 
+      // Validar que el origen esté en la lista permitida
       if (corsConfig.origins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'));
+        callback(new Error(`Not allowed by CORS. Origin "${origin}" is not in the allowed list: ${corsConfig.origins.join(', ')}`));
       }
     };
   }

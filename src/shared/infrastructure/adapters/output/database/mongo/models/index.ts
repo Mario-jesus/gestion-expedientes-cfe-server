@@ -24,6 +24,9 @@
 // Los modelos se registran automáticamente al importar los archivos
 
 // Módulo: users
-import '../../../../../../modules/users/infrastructure/adapters/output/database/mongo';
+import '../../../../../../../modules/users/infrastructure/adapters/output/database/mongo';
+
+// Módulo: auth
+import '../../../../../../../modules/auth/infrastructure/adapters/output/database/mongo';
 
 export {}; // Para que TypeScript lo trate como módulo

@@ -46,9 +46,29 @@ export interface CorsConfig {
   maxAge: number; // Tiempo de caché para preflight requests (segundos)
 }
 
+export interface SecurityConfig {
+  jwt: {
+    secret: string; // Secret para firmar access tokens
+    expiresIn: string; // Tiempo de expiración del access token (ej: "1h", "3600")
+    refreshSecret: string; // Secret para firmar refresh tokens (puede ser el mismo que secret)
+    refreshExpiresIn: string; // Tiempo de expiración del refresh token (ej: "7d", "604800")
+  };
+  rateLimit?: {
+    login: {
+      windowMs: number; // Ventana de tiempo en milisegundos (ej: 900000 = 15 minutos)
+      maxAttempts: number; // Máximo número de intentos por ventana (ej: 5)
+    };
+    refresh: {
+      windowMs: number; // Ventana de tiempo en milisegundos (ej: 900000 = 15 minutos)
+      maxAttempts: number; // Máximo número de intentos por ventana (ej: 10)
+    };
+  };
+}
+
 export interface AppConfig {
   database: DatabaseConfig;
   server: ServerConfig;
   logger: LoggerConfig;
   cors: CorsConfig;
+  security: SecurityConfig;
 }

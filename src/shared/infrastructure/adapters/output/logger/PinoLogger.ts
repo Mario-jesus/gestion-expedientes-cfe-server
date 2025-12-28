@@ -29,6 +29,7 @@ export interface PinoLoggerConfig {
  */
 export class PinoLogger implements ILogger {
   private logger: Logger;
+  private streams: Array<{ stream: any }> = [];
 
   constructor(pinoConfig?: PinoLoggerConfig) {
     const level = pinoConfig?.level || config.logger.level;
@@ -46,7 +47,7 @@ export class PinoLogger implements ILogger {
     };
 
     // Acumular streams (Loki + consola + fichero)
-    const streams: Array<{ stream: any }> = [];
+    this.streams = [];
 
     // Si está configurado Loki, usar pino-loki (stream directo, sin worker)
     if (pinoConfig?.loki) {
@@ -99,7 +100,7 @@ export class PinoLogger implements ILogger {
           basicAuth: pinoConfig.loki.basicAuth,
         });
 
-        streams.push({ stream: transport });
+        this.streams.push({ stream: transport });
 
         console.log('Pino-Loki stream configured', { host: pinoConfig.loki.host, labels: lokiLabels });
       } catch (error) {
@@ -116,7 +117,7 @@ export class PinoLogger implements ILogger {
 
     if (shouldLogToConsole) {
       const consoleStream = pino.destination({ sync: false });
-      streams.push({ stream: consoleStream });
+      this.streams.push({ stream: consoleStream });
     }
 
     // Emitir a fichero si está habilitado
@@ -126,16 +127,16 @@ export class PinoLogger implements ILogger {
         sync: pinoConfig.file.sync ?? false,
         mkdir: true, // crea directorios intermedios para evitar fallos de apertura
       });
-      streams.push({ stream: fileStream });
+      this.streams.push({ stream: fileStream });
     }
 
     // Construir logger según streams disponibles
-    if (streams.length === 0) {
+    if (this.streams.length === 0) {
       this.logger = pino(pinoOptions);
-    } else if (streams.length === 1) {
-      this.logger = pino(pinoOptions, streams[0]!.stream);
+    } else if (this.streams.length === 1) {
+      this.logger = pino(pinoOptions, this.streams[0]!.stream);
     } else {
-      this.logger = pino(pinoOptions, pino.multistream(streams));
+      this.logger = pino(pinoOptions, pino.multistream(this.streams));
     }
   }
 
@@ -214,5 +215,22 @@ export class PinoLogger implements ILogger {
    */
   getPinoInstance(): Logger {
     return this.logger;
+  }
+
+  /**
+   * Cierra todos los streams del logger
+   * Útil para tests y shutdown graceful
+   */
+  async close(): Promise<void> {
+    // Cerrar todos los streams
+    for (const streamWrapper of this.streams) {
+      if (streamWrapper.stream && typeof streamWrapper.stream.end === 'function') {
+        streamWrapper.stream.end();
+      }
+      if (streamWrapper.stream && typeof streamWrapper.stream.destroy === 'function') {
+        streamWrapper.stream.destroy();
+      }
+    }
+    this.streams = [];
   }
 }
