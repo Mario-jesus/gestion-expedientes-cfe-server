@@ -139,7 +139,12 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 # Uploads directory (archivos subidos por usuarios)
-uploads/
+# Ignorar todo el contenido pero mantener los .gitkeep para preservar la estructura
+uploads/*
 !uploads/.gitkeep
+!uploads/documents/
+uploads/documents/*
 !uploads/documents/.gitkeep
+!uploads/minutes/
+uploads/minutes/*
 !uploads/minutes/.gitkeep
