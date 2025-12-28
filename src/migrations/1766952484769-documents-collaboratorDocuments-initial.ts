@@ -111,13 +111,18 @@ export async function up(connection: Connection): Promise<void> {
     }
   }
 
-  // 7. Índice compuesto: collaboratorId + kind + isActive
+  // 7. Índice compuesto: collaboratorId + kind + isActive (con partialFilterExpression)
+  // Este índice tiene partialFilterExpression para solo aplicarse a documentos activos
+  // y un nombre explícito para evitar duplicados con el schema
   try {
     await collection.createIndex(
       { collaboratorId: 1, kind: 1, isActive: 1 },
-      { name: 'collaboratorId_1_kind_1_isActive_1' }
+      {
+        name: 'collaborator_kind_active_idx',
+        partialFilterExpression: { isActive: true },
+      }
     );
-    console.log('✓ Índice compuesto creado: collaboratorId + kind + isActive');
+    console.log('✓ Índice compuesto creado: collaboratorId + kind + isActive (con partialFilterExpression)');
   } catch (error: any) {
     if (error.code === 85) {
       console.log('⚠ Índice compuesto collaboratorId+kind+isActive ya existe, omitiendo...');
@@ -204,7 +209,7 @@ export async function down(connection: Connection): Promise<void> {
     'collaboratorId_1_kind_1_periodo_1',
     'kind_1_isActive_1',
     'collaboratorId_1_isActive_1',
-    'collaboratorId_1_kind_1_isActive_1',
+    'collaborator_kind_active_idx', // Nombre actualizado para coincidir con el schema
     'isActive_1',
     'documentTypeId_1',
     'uploadedAt_-1',

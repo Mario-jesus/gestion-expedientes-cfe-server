@@ -22,6 +22,9 @@ import { AreaController, AdscripcionController, PuestoController, DocumentTypeCo
 import { registerDocumentsModule } from './modules/documents/infrastructure/container';
 import { DocumentController } from './modules/documents/infrastructure/adapters/input/http';
 import { createDocumentRoutes } from './modules/documents/infrastructure/adapters/input/http';
+import { registerMinutesModule } from './modules/minutes/infrastructure/container';
+import { MinuteController } from './modules/minutes/infrastructure/adapters/input/http';
+import { createMinuteRoutes } from './modules/minutes/infrastructure/adapters/input/http';
 import { ITokenService } from './modules/auth/domain/ports/output/ITokenService';
 import { TokenVerifierAdapter } from './modules/auth/infrastructure/adapters/output/token/TokenVerifierAdapter';
 import { ITokenVerifier } from './shared/infrastructure/http/middleware/types';
@@ -31,18 +34,22 @@ import { ITokenVerifier } from './shared/infrastructure/http/middleware/types';
 // 1. users (porque auth depende de userRepository y passwordHasher)
 // 2. auth (depende de users)
 // 3. collaborators (registra collaboratorRepository - debe ir antes de catalogs porque catalogs importa CollaboratorModel)
-// 4. documents (registra documentRepository - ListCollaboratorsUseCase necesita documentRepository)
-// 5. catalogs (depende de collaborators para contar colaboradores)
+// 4. documents (registra documentRepository y fileStorageService - ListCollaboratorsUseCase necesita documentRepository)
+// 5. minutes (depende de fileStorageService de documents)
+// 6. catalogs (depende de collaborators para contar colaboradores)
 // 
 // Nota: documents se registra después de collaborators porque:
 // - CreateDocumentUseCase necesita collaboratorRepository (de collaborators)
 // - ListCollaboratorsUseCase necesita documentRepository (de documents)
+// Nota: minutes se registra después de documents porque:
+// - CreateMinuteUseCase necesita fileStorageService (de documents)
 // Como las dependencias se resuelven lazy en Awilix, este orden funciona correctamente
 // Esto debe hacerse antes de resolver cualquier dependencia del módulo
 registerUsersModule(container);
 registerAuthModule(container);
 registerCollaboratorsModule(container);
 registerDocumentsModule(container);
+registerMinutesModule(container);
 registerCatalogsModule(container);
 
 // Resolver logger del container
@@ -143,6 +150,11 @@ app.use('/api/catalogs', catalogRoutes);
 const documentController = resolve<DocumentController>('documentController');
 const documentRoutes = createDocumentRoutes(documentController, tokenVerifier, logger);
 app.use('/api/documents', documentRoutes);
+
+// Rutas del módulo minutes
+const minuteController = resolve<MinuteController>('minuteController');
+const minuteRoutes = createMinuteRoutes(minuteController, tokenVerifier, logger);
+app.use('/api/minutes', minuteRoutes);
 
 logger.debug('Module routes registered');
 
