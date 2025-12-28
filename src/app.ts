@@ -1,5 +1,6 @@
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
+import path from 'path';
 import { resolve, container } from './shared/infrastructure';
 import { config } from './shared/config';
 import { buildCorsOptions } from './shared/infrastructure/http/cors';
@@ -13,15 +14,36 @@ import { createUserRoutes } from './modules/users/infrastructure/adapters/input/
 import { registerAuthModule } from './modules/auth/infrastructure/container';
 import { AuthController } from './modules/auth/infrastructure/adapters/input/http';
 import { createAuthRoutes } from './modules/auth/infrastructure/adapters/input/http';
+import { registerCollaboratorsModule } from './modules/collaborators/infrastructure/container';
+import { CollaboratorController } from './modules/collaborators/infrastructure/adapters/input/http';
+import { createCollaboratorRoutes } from './modules/collaborators/infrastructure/adapters/input/http';
+import { registerCatalogsModule } from './modules/catalogs/infrastructure/container';
+import { AreaController, AdscripcionController, PuestoController, DocumentTypeController, createCatalogRoutes } from './modules/catalogs/infrastructure/adapters/input/http';
+import { registerDocumentsModule } from './modules/documents/infrastructure/container';
+import { DocumentController } from './modules/documents/infrastructure/adapters/input/http';
+import { createDocumentRoutes } from './modules/documents/infrastructure/adapters/input/http';
 import { ITokenService } from './modules/auth/domain/ports/output/ITokenService';
 import { TokenVerifierAdapter } from './modules/auth/infrastructure/adapters/output/token/TokenVerifierAdapter';
 import { ITokenVerifier } from './shared/infrastructure/http/middleware/types';
 
 // Registrar módulos en el contenedor de DI
-// Orden importante: primero users (porque auth depende de userRepository y passwordHasher)
+// Orden importante:
+// 1. users (porque auth depende de userRepository y passwordHasher)
+// 2. auth (depende de users)
+// 3. collaborators (registra collaboratorRepository - debe ir antes de catalogs porque catalogs importa CollaboratorModel)
+// 4. documents (registra documentRepository - ListCollaboratorsUseCase necesita documentRepository)
+// 5. catalogs (depende de collaborators para contar colaboradores)
+// 
+// Nota: documents se registra después de collaborators porque:
+// - CreateDocumentUseCase necesita collaboratorRepository (de collaborators)
+// - ListCollaboratorsUseCase necesita documentRepository (de documents)
+// Como las dependencias se resuelven lazy en Awilix, este orden funciona correctamente
 // Esto debe hacerse antes de resolver cualquier dependencia del módulo
 registerUsersModule(container);
 registerAuthModule(container);
+registerCollaboratorsModule(container);
+registerDocumentsModule(container);
+registerCatalogsModule(container);
 
 // Resolver logger del container
 const logger = resolve<ILogger>('logger');
@@ -57,6 +79,29 @@ app.get('/', (_req: Request, res: Response) => {
   });
 });
 
+// Servir archivos estáticos desde el directorio de uploads
+// Esta ruta permite acceder a los archivos subidos mediante URLs como /uploads/documents/file.pdf
+const uploadsDir = path.resolve(config.fileStorage.uploadDir);
+app.use('/uploads', express.static(uploadsDir, {
+  // Opciones de seguridad para servir archivos estáticos
+  dotfiles: 'deny', // No servir archivos ocultos (que empiezan con .)
+  index: false, // No servir index.html si existe
+  // Headers de seguridad
+  setHeaders: (res: Response, _filePath: string) => {
+    // Solo permitir descarga, no ejecución en el navegador
+    res.setHeader('Content-Disposition', 'attachment');
+    // No cachear archivos por seguridad
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  },
+}));
+
+logger.debug('Static file serving configured', {
+  uploadsDir,
+  staticPath: '/uploads',
+});
+
 // ============================================
 // RUTAS DE MÓDULOS
 // ============================================
@@ -73,6 +118,31 @@ app.use('/api/auth', authRoutes);
 const userController = resolve<UserController>('userController');
 const userRoutes = createUserRoutes(userController, tokenVerifier, logger);
 app.use('/api/users', userRoutes);
+
+// Rutas del módulo collaborators
+const collaboratorController = resolve<CollaboratorController>('collaboratorController');
+const collaboratorRoutes = createCollaboratorRoutes(collaboratorController, tokenVerifier, logger);
+app.use('/api/collaborators', collaboratorRoutes);
+
+// Rutas del módulo catalogs
+const areaController = resolve<AreaController>('areaController');
+const adscripcionController = resolve<AdscripcionController>('adscripcionController');
+const puestoController = resolve<PuestoController>('puestoController');
+const documentTypeController = resolve<DocumentTypeController>('documentTypeController');
+const catalogRoutes = createCatalogRoutes(
+  areaController,
+  adscripcionController,
+  puestoController,
+  documentTypeController,
+  tokenVerifier,
+  logger
+);
+app.use('/api/catalogs', catalogRoutes);
+
+// Rutas del módulo documents
+const documentController = resolve<DocumentController>('documentController');
+const documentRoutes = createDocumentRoutes(documentController, tokenVerifier, logger);
+app.use('/api/documents', documentRoutes);
 
 logger.debug('Module routes registered');
 

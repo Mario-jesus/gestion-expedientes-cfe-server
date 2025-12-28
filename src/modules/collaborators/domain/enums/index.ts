@@ -1,0 +1,1 @@
+export { TipoContrato } from './TipoContrato';

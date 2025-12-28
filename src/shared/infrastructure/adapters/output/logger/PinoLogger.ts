@@ -102,7 +102,9 @@ export class PinoLogger implements ILogger {
 
         this.streams.push({ stream: transport });
 
-        console.log('Pino-Loki stream configured', { host: pinoConfig.loki.host, labels: lokiLabels });
+        // Log de configuración solo en modo debug/trace
+        // No loguear aquí porque el logger aún no está completamente inicializado
+        // La configuración se puede verificar en los logs de la aplicación si es necesario
       } catch (error) {
         console.warn('pino-loki not available, using standard logger');
         console.warn('Error details:', error instanceof Error ? error.message : error);

@@ -1,8 +1,11 @@
 import dotenv from 'dotenv';
-import type { LoggerConfig, SecurityConfig } from './types';
+import type { LoggerConfig, SecurityConfig, FileStorageConfig } from './types';
 
 // Cargar variables de entorno desde .env
-dotenv.config();
+// Silenciar mensajes de dotenv en tests y producción
+dotenv.config({
+  debug: process.env.DOTENV_CONFIG_DEBUG === 'true',
+});
 
 /**
  * Construye la URI completa de MongoDB a partir del host y nombre de base de datos
@@ -358,6 +361,52 @@ function getCorsConfig() {
 }
 
 /**
+ * Lee y valida las variables de entorno de almacenamiento de archivos
+ */
+function getFileStorageConfig(): FileStorageConfig {
+  // Directorio base para uploads (default: ./uploads)
+  const uploadDir = process.env.UPLOAD_DIR || './uploads';
+
+  // Directorio para documentos de colaboradores (default: ./uploads/documents)
+  const documentsDir = process.env.DOCUMENTS_DIR || './uploads/documents';
+
+  // Directorio para minutas (default: ./uploads/minutes)
+  const minutesDir = process.env.MINUTES_DIR || './uploads/minutes';
+
+  // Tamaño máximo de archivo en bytes (default: 10MB = 10485760 bytes)
+  const maxFileSize = parseInt(process.env.MAX_FILE_SIZE || '10485760', 10);
+  if (isNaN(maxFileSize) || maxFileSize <= 0) {
+    throw new Error(
+      `Invalid MAX_FILE_SIZE: ${process.env.MAX_FILE_SIZE}. Must be a positive number in bytes.`
+    );
+  }
+
+  // Tipos MIME permitidos (default: PDF, DOC, DOCX, XLS, XLSX, imágenes)
+  const allowedFileTypesEnv = process.env.ALLOWED_FILE_TYPES ||
+    'application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/jpeg,image/png,image/jpg';
+
+  const allowedFileTypes = allowedFileTypesEnv
+    .split(',')
+    .map(type => type.trim())
+    .filter(type => type.length > 0);
+
+  // Validar que haya al menos un tipo permitido
+  if (allowedFileTypes.length === 0) {
+    throw new Error(
+      'ALLOWED_FILE_TYPES must contain at least one valid MIME type.'
+    );
+  }
+
+  return {
+    uploadDir,
+    documentsDir,
+    minutesDir,
+    maxFileSize,
+    allowedFileTypes,
+  };
+}
+
+/**
  * Carga y valida toda la configuración de la aplicación
  * @throws Error si alguna variable de entorno requerida es inválida
  */
@@ -369,6 +418,7 @@ export function loadConfig() {
       logger: getLoggerConfig(),
       cors: getCorsConfig(),
       security: getSecurityConfig(),
+      fileStorage: getFileStorageConfig(),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';

@@ -1,4 +1,5 @@
 import { IDatabase } from '../../../../domain/ports/output';
+import type { ILogger } from '../../../../domain/ports/output';
 
 /**
  * Implementación completamente en memoria de base de datos
@@ -8,17 +9,22 @@ import { IDatabase } from '../../../../domain/ports/output';
 export class InMemoryDatabase implements IDatabase {
   private isConnectedFlag = false;
   private collections: Map<string, Map<string, any>> = new Map();
+  private logger: ILogger | undefined;
+
+  constructor(logger?: ILogger) {
+    this.logger = logger ?? undefined;
+  }
 
   async connect(): Promise<void> {
     this.isConnectedFlag = true;
     this.collections.clear();
-    console.log('Connected to In-Memory Database');
+    this.logger?.debug('Connected to In-Memory Database');
   }
 
   async disconnect(): Promise<void> {
     this.isConnectedFlag = false;
     this.collections.clear();
-    console.log('Disconnected from In-Memory Database');
+    this.logger?.debug('Disconnected from In-Memory Database');
   }
 
   isConnected(): boolean {
@@ -30,7 +36,7 @@ export class InMemoryDatabase implements IDatabase {
       throw new Error('Database is not connected');
     }
     this.collections.clear();
-    console.log('Database cleared');
+    this.logger?.debug('Database cleared');
   }
 
   /**

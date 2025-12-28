@@ -29,4 +29,13 @@ import '../../../../../../../modules/users/infrastructure/adapters/output/databa
 // Módulo: auth
 import '../../../../../../../modules/auth/infrastructure/adapters/output/database/mongo';
 
+// Módulo: collaborators
+import '../../../../../../../modules/collaborators/infrastructure/adapters/output/database/mongo';
+
+// Módulo: catalogs
+import '../../../../../../../modules/catalogs/infrastructure/adapters/output/database/mongo';
+
+// Módulo: documents
+import '../../../../../../../modules/documents/infrastructure/adapters/output/database/mongo';
+
 export {}; // Para que TypeScript lo trate como módulo

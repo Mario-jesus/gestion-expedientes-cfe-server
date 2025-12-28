@@ -65,10 +65,19 @@ export interface SecurityConfig {
   };
 }
 
+export interface FileStorageConfig {
+  uploadDir: string; // Directorio base para uploads (ej: ./uploads)
+  documentsDir: string; // Directorio para documentos de colaboradores (ej: ./uploads/documents)
+  minutesDir: string; // Directorio para minutas (ej: ./uploads/minutes)
+  maxFileSize: number; // Tamaño máximo de archivo en bytes (default: 10MB)
+  allowedFileTypes: string[]; // Tipos MIME permitidos
+}
+
 export interface AppConfig {
   database: DatabaseConfig;
   server: ServerConfig;
   logger: LoggerConfig;
   cors: CorsConfig;
   security: SecurityConfig;
+  fileStorage: FileStorageConfig;
 }

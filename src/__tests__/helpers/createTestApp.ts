@@ -15,10 +15,18 @@ import { ILogger } from '@shared/domain';
 import { errorHandler, notFoundHandler } from '@shared/infrastructure';
 import { registerUsersModule } from '@modules/users/infrastructure/container';
 import { registerAuthModule } from '@modules/auth/infrastructure/container';
+import { registerCollaboratorsModule } from '@modules/collaborators/infrastructure/container';
+import { registerCatalogsModule } from '@modules/catalogs/infrastructure/container';
+import { registerDocumentsModule } from '@modules/documents/infrastructure/container';
 import { UserController } from '@modules/users/infrastructure/adapters/input/http';
 import { createUserRoutes } from '@modules/users/infrastructure/adapters/input/http';
 import { AuthController } from '@modules/auth/infrastructure/adapters/input/http';
 import { createAuthRoutes } from '@modules/auth/infrastructure/adapters/input/http';
+import { CollaboratorController } from '@modules/collaborators/infrastructure/adapters/input/http';
+import { createCollaboratorRoutes } from '@modules/collaborators/infrastructure/adapters/input/http';
+import { AreaController, AdscripcionController, PuestoController, DocumentTypeController, createCatalogRoutes } from '@modules/catalogs/infrastructure/adapters/input/http';
+import { DocumentController } from '@modules/documents/infrastructure/adapters/input/http';
+import { createDocumentRoutes } from '@modules/documents/infrastructure/adapters/input/http';
 import { ITokenService } from '@modules/auth/domain/ports/output/ITokenService';
 import { TokenVerifierAdapter } from '@modules/auth/infrastructure/adapters/output/token/TokenVerifierAdapter';
 import { ITokenVerifier } from '@shared/infrastructure/http/middleware/types';
@@ -43,6 +51,9 @@ export function createTestApp(
   if (!skipModuleRegistration) {
     registerUsersModule(container);
     registerAuthModule(container);
+    registerCollaboratorsModule(container);
+    registerCatalogsModule(container);
+    registerDocumentsModule(container);
   }
 
   // Ejecutar función opcional después de registrar módulos pero antes de resolver dependencias
@@ -95,6 +106,44 @@ export function createTestApp(
   const userController = resolve<UserController>('userController');
   const userRoutes = createUserRoutes(userController, tokenVerifier, logger);
   app.use('/api/users', userRoutes);
+
+  // Rutas del módulo collaborators (solo si el módulo está registrado)
+  try {
+    const collaboratorController = resolve<CollaboratorController>('collaboratorController');
+    const collaboratorRoutes = createCollaboratorRoutes(collaboratorController, tokenVerifier, logger);
+    app.use('/api/collaborators', collaboratorRoutes);
+  } catch (error) {
+    // El módulo collaborators no está registrado, omitir sus rutas
+  }
+
+  // Rutas del módulo documents (solo si el módulo está registrado)
+  try {
+    const documentController = resolve<DocumentController>('documentController');
+    const documentRoutes = createDocumentRoutes(documentController, tokenVerifier, logger);
+    app.use('/api/documents', documentRoutes);
+  } catch (error) {
+    // El módulo documents no está registrado, omitir sus rutas
+  }
+
+  // Rutas del módulo catalogs (solo si el módulo está registrado)
+  try {
+    const areaController = resolve<AreaController>('areaController');
+    const adscripcionController = resolve<AdscripcionController>('adscripcionController');
+    const puestoController = resolve<PuestoController>('puestoController');
+    const documentTypeController = resolve<DocumentTypeController>('documentTypeController');
+    const catalogRoutes = createCatalogRoutes(
+      areaController,
+      adscripcionController,
+      puestoController,
+      documentTypeController,
+      tokenVerifier,
+      logger
+    );
+    app.use('/api/catalogs', catalogRoutes);
+  } catch (error) {
+    // El módulo catalogs no está registrado, omitir sus rutas
+    // Esto permite que los tests de otros módulos funcionen sin necesidad de registrar catalogs
+  }
 
   // Manejo de rutas no encontradas
   app.use(notFoundHandler);

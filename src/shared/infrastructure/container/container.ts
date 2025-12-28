@@ -1,4 +1,4 @@
-import { createContainer, asClass, asFunction, InjectionMode, Lifetime } from 'awilix';
+import { createContainer, asFunction, InjectionMode, Lifetime } from 'awilix';
 import { config } from '../../config';
 import { InMemoryDatabase } from '../adapters/output/database/InMemoryDatabase';
 import { MongoDBDatabase } from '../adapters/output/database/mongo/MongoDBDatabase';
@@ -31,7 +31,12 @@ export function registerSharedDependencies(): void {
     });
   } else {
     container.register({
-      database: asClass(InMemoryDatabase, { lifetime: Lifetime.SINGLETON }),
+      database: asFunction(
+        ({ logger }: { logger: any }) => {
+          return new InMemoryDatabase(logger);
+        },
+        { lifetime: Lifetime.SINGLETON }
+      ),
     });
   }
 
