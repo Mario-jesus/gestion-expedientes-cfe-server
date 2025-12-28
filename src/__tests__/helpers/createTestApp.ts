@@ -18,6 +18,7 @@ import { registerAuthModule } from '@modules/auth/infrastructure/container';
 import { registerCollaboratorsModule } from '@modules/collaborators/infrastructure/container';
 import { registerCatalogsModule } from '@modules/catalogs/infrastructure/container';
 import { registerDocumentsModule } from '@modules/documents/infrastructure/container';
+import { registerMinutesModule } from '@modules/minutes/infrastructure/container';
 import { UserController } from '@modules/users/infrastructure/adapters/input/http';
 import { createUserRoutes } from '@modules/users/infrastructure/adapters/input/http';
 import { AuthController } from '@modules/auth/infrastructure/adapters/input/http';
@@ -27,6 +28,8 @@ import { createCollaboratorRoutes } from '@modules/collaborators/infrastructure/
 import { AreaController, AdscripcionController, PuestoController, DocumentTypeController, createCatalogRoutes } from '@modules/catalogs/infrastructure/adapters/input/http';
 import { DocumentController } from '@modules/documents/infrastructure/adapters/input/http';
 import { createDocumentRoutes } from '@modules/documents/infrastructure/adapters/input/http';
+import { MinuteController } from '@modules/minutes/infrastructure/adapters/input/http';
+import { createMinuteRoutes } from '@modules/minutes/infrastructure/adapters/input/http';
 import { ITokenService } from '@modules/auth/domain/ports/output/ITokenService';
 import { TokenVerifierAdapter } from '@modules/auth/infrastructure/adapters/output/token/TokenVerifierAdapter';
 import { ITokenVerifier } from '@shared/infrastructure/http/middleware/types';
@@ -54,6 +57,7 @@ export function createTestApp(
     registerCollaboratorsModule(container);
     registerCatalogsModule(container);
     registerDocumentsModule(container);
+    registerMinutesModule(container);
   }
 
   // Ejecutar función opcional después de registrar módulos pero antes de resolver dependencias
@@ -123,6 +127,15 @@ export function createTestApp(
     app.use('/api/documents', documentRoutes);
   } catch (error) {
     // El módulo documents no está registrado, omitir sus rutas
+  }
+
+  // Rutas del módulo minutes (solo si el módulo está registrado)
+  try {
+    const minuteController = resolve<MinuteController>('minuteController');
+    const minuteRoutes = createMinuteRoutes(minuteController, tokenVerifier, logger);
+    app.use('/api/minutes', minuteRoutes);
+  } catch (error) {
+    // El módulo minutes no está registrado, omitir sus rutas
   }
 
   // Rutas del módulo catalogs (solo si el módulo está registrado)
