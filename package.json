@@ -10,6 +10,7 @@
     "start:dev": "npm run dev",
     "migrate": "npm run migrate:up",
     "migrate:up": "npx migrate up",
+    "migrate:all": "echo 'a' | npx migrate up",
     "migrate:down": "npx migrate down",
     "migrate:create": "npx migrate create",
     "migrate:list": "npx migrate list",

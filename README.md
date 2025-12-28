@@ -267,6 +267,10 @@ Antes de ejecutar el servidor por primera vez, sigue estos pasos:
 
 3. **Si usas MongoDB, ejecutar migraciones:**
    ```bash
+   # Primera vez: ejecutar todas las migraciones automáticamente (sin confirmación)
+   npm run migrate:all
+
+   # O si prefieres confirmar cada migración manualmente:
    npm run migrate
    ```
 
@@ -316,7 +320,8 @@ npm start
 | `npm start` | Ejecuta el servidor en modo producción (requiere build previo) |
 | `npm run start:dev` | Alias para `npm run dev` |
 | `npm run migrate` | Ejecuta todas las migraciones pendientes (alias de `migrate:up`) |
-| `npm run migrate:up` | Ejecuta todas las migraciones pendientes |
+| `npm run migrate:up` | Ejecuta todas las migraciones pendientes (con confirmación manual) |
+| `npm run migrate:all` | Ejecuta todas las migraciones pendientes automáticamente (sin confirmación) - Recomendado para primera vez |
 | `npm run migrate:down` | Revierte la última migración ejecutada |
 | `npm run migrate:create` | Crea un nuevo archivo de migración |
 | `npm run migrate:list` | Lista todas las migraciones y su estado |
@@ -372,11 +377,16 @@ Esto creará un archivo en `src/migrations/` con un timestamp y el nombre propor
 ### Ejecutar migraciones
 
 ```bash
-# Ejecutar todas las migraciones pendientes
+# Primera vez: ejecutar todas las migraciones automáticamente (sin confirmación)
+npm run migrate:all
+
+# O ejecutar con confirmación manual (útil para revisar cada migración)
 npm run migrate
 # O explícitamente:
 npm run migrate:up
 ```
+
+**Recomendación:** Usa `migrate:all` cuando sea la primera vez o cuando quieras aplicar todas las migraciones pendientes sin confirmación. Usa `migrate:up` cuando quieras revisar cada migración antes de aplicarla.
 
 Las migraciones se ejecutan en orden cronológico y solo se aplican una vez (se registran en la colección `migrations` de MongoDB).
 
@@ -499,6 +509,7 @@ npm run test:e2e
 Los tests E2E se encuentran en:
 - `src/modules/auth/infrastructure/adapters/input/http/__tests__/auth.e2e.test.ts`
 - `src/modules/users/infrastructure/adapters/input/http/__tests__/users.e2e.test.ts`
+- `src/modules/minutes/infrastructure/adapters/input/http/__tests__/minutes.e2e.test.ts`
 
 ### Configuración de tests
 
@@ -817,7 +828,7 @@ Si los tests fallan:
    # Editar .env con tus configuraciones
 
    # 3. Si usas MongoDB, ejecutar migraciones
-   npm run migrate
+   npm run migrate:all
 
    # 4. Crear usuario inicial
    npm run seed
@@ -862,4 +873,13 @@ Una vez que el servidor esté corriendo, los endpoints disponibles son:
 - `POST /api/users/:id/deactivate` - Desactivar usuario (solo admin)
 - `POST /api/users/:id/change-password` - Cambiar contraseña (mismo usuario o admin)
 
-**Nota:** Todos los endpoints de usuarios requieren autenticación (token JWT en el header `Authorization: Bearer <token>`).
+#### Minutas (`/api/minutes`)
+- `POST /api/minutes` - Crear/subir minuta (con archivo, multipart/form-data)
+- `GET /api/minutes` - Listar minutas con filtros (tipo, fechaDesde, fechaHasta, search, paginación)
+- `GET /api/minutes/:id` - Obtener minuta por ID
+- `GET /api/minutes/:id/download` - Obtener URL de descarga/visualización
+- `PUT /api/minutes/:id` - Actualizar minuta completa (metadatos)
+- `PATCH /api/minutes/:id` - Actualizar minuta parcial (metadatos)
+- `DELETE /api/minutes/:id` - Eliminar minuta (baja lógica)
+
+**Nota:** Todos los endpoints requieren autenticación (token JWT en el header `Authorization: Bearer <token>`).
