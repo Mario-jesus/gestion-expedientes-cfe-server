@@ -130,6 +130,43 @@ LOG_FILE_PATH=./logs/app.log
 LOG_FILE_SYNC=false
 ```
 
+#### Variables de Autenticación JWT (Requeridas)
+
+```env
+# Secret para firmar access tokens (requerido, mínimo 32 caracteres)
+JWT_SECRET=your-super-secret-key-change-in-production-minimum-32-chars
+
+# Tiempo de expiración del access token (opcional, por defecto: 1h)
+# Formatos válidos: "1h", "30m", "3600" (segundos), "7d"
+JWT_EXPIRES_IN=1h
+
+# Secret para firmar refresh tokens (opcional, por defecto: usa JWT_SECRET)
+# Si no se especifica, se usa el mismo secret que JWT_SECRET
+# Recomendado: usar un secret diferente para mayor seguridad
+JWT_REFRESH_SECRET=your-refresh-secret-key-change-in-production-minimum-32-chars
+
+# Tiempo de expiración del refresh token (opcional, por defecto: 7d)
+JWT_REFRESH_EXPIRES_IN=7d
+```
+
+**💡 Generador de claves secretas:** Puedes generar claves secretas seguras para JWT usando [https://jwtsecrets.com/](https://jwtsecrets.com/)
+
+#### Variables de Rate Limiting (Opcionales)
+
+```env
+# Ventana de tiempo para rate limiting de login en milisegundos (opcional, por defecto: 900000 = 15 min)
+RATE_LIMIT_LOGIN_WINDOW_MS=900000
+
+# Máximo número de intentos de login por ventana (opcional, por defecto: 5)
+RATE_LIMIT_LOGIN_MAX_ATTEMPTS=5
+
+# Ventana de tiempo para rate limiting de refresh token en milisegundos (opcional, por defecto: 900000 = 15 min)
+RATE_LIMIT_REFRESH_WINDOW_MS=900000
+
+# Máximo número de intentos de refresh por ventana (opcional, por defecto: 10)
+RATE_LIMIT_REFRESH_MAX_ATTEMPTS=10
+```
+
 #### Variables de Loki (Opcional - para agregación de logs)
 
 ```env
@@ -180,6 +217,18 @@ MONGODB_USER=admin
 MONGODB_PASSWORD=12345678
 MONGODB_AUTH_SOURCE=admin
 
+# Autenticación JWT (REQUERIDAS)
+JWT_SECRET=your-super-secret-key-change-in-production-minimum-32-characters-long
+JWT_EXPIRES_IN=1h
+JWT_REFRESH_SECRET=your-refresh-secret-key-change-in-production-minimum-32-characters-long
+JWT_REFRESH_EXPIRES_IN=7d
+
+# Rate Limiting (Opcionales)
+RATE_LIMIT_LOGIN_WINDOW_MS=900000
+RATE_LIMIT_LOGIN_MAX_ATTEMPTS=5
+RATE_LIMIT_REFRESH_WINDOW_MS=900000
+RATE_LIMIT_REFRESH_MAX_ATTEMPTS=10
+
 # CORS
 CORS_ALLOW_ALL=false
 CORS_ORIGIN=http://localhost:5174
@@ -194,6 +243,37 @@ LOG_TO_FILE=false
 **Nota:** El archivo `.env` está en `.gitignore` y no se subirá al repositorio. Solo el archivo `.env.example` se mantiene como plantilla.
 
 ## 🏃 Ejecución
+
+### Configuración Inicial (Primera vez)
+
+Antes de ejecutar el servidor por primera vez, sigue estos pasos:
+
+1. **Configurar variables de entorno:**
+   ```bash
+   cp .env.example .env
+   # Edita .env con tus configuraciones
+   ```
+
+2. **Configurar JWT (Requerido para autenticación):**
+   Asegúrate de tener estas variables en tu `.env`:
+   ```env
+   JWT_SECRET=tu-secret-key-super-seguro-minimo-32-caracteres
+   JWT_EXPIRES_IN=1h
+   JWT_REFRESH_SECRET=tu-refresh-secret-key-super-seguro-minimo-32-caracteres
+   JWT_REFRESH_EXPIRES_IN=7d
+   ```
+   
+   **💡 Tip:** Puedes generar claves secretas seguras usando [https://jwtsecrets.com/](https://jwtsecrets.com/)
+
+3. **Si usas MongoDB, ejecutar migraciones:**
+   ```bash
+   npm run migrate
+   ```
+
+4. **Crear usuario administrador inicial:**
+   ```bash
+   npm run seed
+   ```
 
 ### Modo Desarrollo
 
@@ -235,6 +315,17 @@ npm start
 | `npm run build` | Compila TypeScript a JavaScript en la carpeta `dist/` |
 | `npm start` | Ejecuta el servidor en modo producción (requiere build previo) |
 | `npm run start:dev` | Alias para `npm run dev` |
+| `npm run migrate` | Ejecuta todas las migraciones pendientes (alias de `migrate:up`) |
+| `npm run migrate:up` | Ejecuta todas las migraciones pendientes |
+| `npm run migrate:down` | Revierte la última migración ejecutada |
+| `npm run migrate:create` | Crea un nuevo archivo de migración |
+| `npm run migrate:list` | Lista todas las migraciones y su estado |
+| `npm run migrate:prune` | Elimina migraciones antiguas del historial |
+| `npm run seed` | Crea un usuario administrador inicial si no existe ningún usuario |
+| `npm test` | Ejecuta todos los tests (unitarios, integración y E2E) |
+| `npm run test:watch` | Ejecuta tests en modo watch (se re-ejecutan al cambiar archivos) |
+| `npm run test:coverage` | Ejecuta tests y genera reporte de cobertura |
+| `npm run test:e2e` | Ejecuta solo los tests E2E |
 
 ## 🧪 Verificar que funciona
 
@@ -265,6 +356,184 @@ curl http://localhost:4000/
 ```
 
 O abre en tu navegador: `http://localhost:4000/`
+
+## 🗄️ Migraciones de Base de Datos
+
+El proyecto usa `ts-migrate-mongoose` para gestionar migraciones de esquemas e índices de MongoDB.
+
+### Crear una nueva migración
+
+```bash
+npm run migrate:create nombre-de-la-migracion
+```
+
+Esto creará un archivo en `src/migrations/` con un timestamp y el nombre proporcionado.
+
+### Ejecutar migraciones
+
+```bash
+# Ejecutar todas las migraciones pendientes
+npm run migrate
+# O explícitamente:
+npm run migrate:up
+```
+
+Las migraciones se ejecutan en orden cronológico y solo se aplican una vez (se registran en la colección `migrations` de MongoDB).
+
+### Revertir migraciones
+
+```bash
+# Revertir la última migración ejecutada
+npm run migrate:down
+```
+
+### Listar migraciones
+
+```bash
+# Ver todas las migraciones y su estado
+npm run migrate:list
+```
+
+### Limpiar historial de migraciones
+
+```bash
+# Eliminar migraciones antiguas del historial (útil para limpiar)
+npm run migrate:prune
+```
+
+### Estructura de una migración
+
+Las migraciones se crean en `src/migrations/` y tienen la siguiente estructura:
+
+```typescript
+import { Migration } from 'ts-migrate-mongoose';
+
+export const up: Migration = async ({ db }) => {
+  // Código para aplicar la migración
+  // Ejemplo: crear índices, colecciones, etc.
+};
+
+export const down: Migration = async ({ db }) => {
+  // Código para revertir la migración
+  // Ejemplo: eliminar índices, colecciones, etc.
+};
+```
+
+**Nota:** Las migraciones se ejecutan contra la base de datos configurada en `.env` (`MONGODB_HOST` y `DATABASE_NAME`).
+
+## 👤 Crear Usuario Administrador Inicial
+
+Para crear un usuario administrador inicial en la base de datos, usa el script de seed:
+
+```bash
+npm run seed
+```
+
+Este script:
+- Verifica si ya existe algún usuario en la base de datos
+- Si no existe ningún usuario, crea un usuario administrador con los datos por defecto
+- Si ya existen usuarios, no hace nada (idempotente)
+
+### Configuración del usuario inicial
+
+Puedes personalizar los datos del usuario inicial usando variables de entorno:
+
+```bash
+# Usar valores por defecto
+npm run seed
+
+# O personalizar los valores
+SEED_USERNAME=admin \
+SEED_PASSWORD=miPasswordSegura123 \
+SEED_EMAIL=admin@cfe.com \
+SEED_NAME="Administrador Principal" \
+npm run seed
+```
+
+**Valores por defecto:**
+- `SEED_USERNAME`: `admin`
+- `SEED_PASSWORD`: `password123`
+- `SEED_EMAIL`: `admin@cfe.com`
+- `SEED_NAME`: `Administrador Principal`
+- `SEED_ROLE`: `admin` (siempre)
+
+**⚠️ IMPORTANTE:** 
+- Cambia la contraseña después del primer login
+- Este script solo crea un usuario si NO existe ningún usuario en la base de datos
+- Asegúrate de tener MongoDB corriendo y configurado correctamente en `.env`
+
+## 🧪 Testing
+
+El proyecto incluye tests E2E (End-to-End) usando Jest y Supertest.
+
+### Ejecutar todos los tests
+
+```bash
+npm test
+```
+
+### Ejecutar tests en modo watch
+
+```bash
+npm run test:watch
+```
+
+Los tests se re-ejecutan automáticamente cuando cambias archivos.
+
+### Generar reporte de cobertura
+
+```bash
+npm run test:coverage
+```
+
+Esto genera un reporte de cobertura en la carpeta `coverage/` con información detallada de qué código está cubierto por tests.
+
+### Ejecutar solo tests E2E
+
+```bash
+npm run test:e2e
+```
+
+### Ubicación de los tests
+
+Los tests E2E se encuentran en:
+- `src/modules/auth/infrastructure/adapters/input/http/__tests__/auth.e2e.test.ts`
+- `src/modules/users/infrastructure/adapters/input/http/__tests__/users.e2e.test.ts`
+
+### Configuración de tests
+
+Los tests:
+- Usan una base de datos en memoria (`InMemoryDatabase`) por defecto
+- No requieren MongoDB corriendo
+- Usan mocks de repositorios (`InMemoryUserRepository`, `InMemoryRefreshTokenRepository`)
+- Se configuran automáticamente mediante `src/__tests__/setup.ts`
+- Limpian recursos (EventBus, Logger streams) después de ejecutarse
+
+### Estructura de un test E2E
+
+```typescript
+describe('Module E2E Tests', () => {
+  let app: ReturnType<typeof createTestApp>;
+
+  beforeAll(async () => {
+    // Configuración inicial: conectar DB, crear usuarios de prueba, etc.
+  });
+
+  afterAll(async () => {
+    // Limpieza: desconectar DB, limpiar recursos
+  });
+
+  describe('POST /api/endpoint', () => {
+    it('debe hacer algo', async () => {
+      const response = await request(app)
+        .post('/api/endpoint')
+        .send({ data: 'test' });
+      
+      expect(response.status).toBe(200);
+    });
+  });
+});
+```
 
 ## 📁 Estructura del Proyecto
 
@@ -438,6 +707,12 @@ gestion-expedientes-cfe-server/
 - **Pino** - Logger estructurado
 - **dotenv** - Manejo de variables de entorno
 - **cors** - Middleware para habilitar CORS
+- **jsonwebtoken** - Generación y verificación de tokens JWT
+- **bcrypt** - Hashing de contraseñas
+- **express-rate-limit** - Rate limiting para protección contra ataques
+- **Jest** - Framework de testing
+- **Supertest** - Testing de APIs HTTP
+- **ts-migrate-mongoose** - Gestión de migraciones de MongoDB
 
 ## 🐛 Solución de Problemas
 
@@ -466,3 +741,125 @@ Si hay errores de compilación, verifica la configuración en `tsconfig.json` y 
 ```bash
 npm install -g typescript
 ```
+
+### Errores de JWT_SECRET
+
+Si el servidor no inicia y muestra un error sobre `JWT_SECRET`:
+
+1. Verifica que tengas la variable `JWT_SECRET` en tu `.env`
+2. Asegúrate de que tenga al menos 32 caracteres
+3. Ejemplo válido:
+   ```env
+   JWT_SECRET=mi-super-secret-key-para-jwt-minimo-32-caracteres
+   ```
+
+**💡 Generar claves secretas:** Puedes usar [https://jwtsecrets.com/](https://jwtsecrets.com/) para generar claves secretas seguras y aleatorias para JWT.
+
+### Errores de conexión a MongoDB
+
+Si tienes problemas conectando a MongoDB:
+
+1. Verifica que MongoDB esté corriendo:
+   ```bash
+   # Linux/Mac
+   sudo systemctl status mongod
+
+   # O verifica el proceso
+   ps aux | grep mongod
+   ```
+
+2. Verifica las credenciales en `.env`:
+   ```env
+   USE_MONGODB=true
+   MONGODB_HOST=mongodb://localhost:27017
+   DATABASE_NAME=gestion-expedientes-cfe
+   ```
+
+3. Prueba conectarte manualmente:
+   ```bash
+   mongosh mongodb://localhost:27017/gestion-expedientes-cfe
+   ```
+
+### Errores en migraciones
+
+Si las migraciones fallan:
+
+1. Verifica que MongoDB esté corriendo y accesible
+2. Verifica que la base de datos esté configurada correctamente en `.env`
+3. Lista las migraciones para ver su estado:
+   ```bash
+   npm run migrate:list
+   ```
+
+### Errores en tests
+
+Si los tests fallan:
+
+1. Asegúrate de que no tengas MongoDB corriendo (los tests usan base de datos en memoria)
+2. Verifica que todas las dependencias estén instaladas:
+   ```bash
+   npm install
+   ```
+
+3. Si hay problemas con path aliases, verifica `tsconfig.json` y `jest.config.js`
+
+## 📚 Guías Adicionales
+
+### Flujo de trabajo típico
+
+1. **Configuración inicial:**
+   ```bash
+   # 1. Instalar dependencias
+   npm install
+
+   # 2. Configurar .env
+   cp .env.example .env
+   # Editar .env con tus configuraciones
+
+   # 3. Si usas MongoDB, ejecutar migraciones
+   npm run migrate
+
+   # 4. Crear usuario inicial
+   npm run seed
+   ```
+
+2. **Desarrollo:**
+   ```bash
+   # Iniciar servidor en modo desarrollo
+   npm run dev
+
+   # En otra terminal, ejecutar tests
+   npm test
+   ```
+
+3. **Antes de commit:**
+   ```bash
+   # Ejecutar todos los tests
+   npm test
+
+   # Verificar cobertura
+   npm run test:coverage
+   ```
+
+### Endpoints de la API
+
+Una vez que el servidor esté corriendo, los endpoints disponibles son:
+
+#### Autenticación (`/api/auth`)
+- `POST /api/auth/login` - Iniciar sesión
+- `POST /api/auth/logout` - Cerrar sesión
+- `GET /api/auth/me` - Obtener usuario actual
+- `POST /api/auth/refresh` - Refrescar token
+
+#### Usuarios (`/api/users`)
+- `POST /api/users` - Crear usuario (solo admin)
+- `GET /api/users` - Listar usuarios (solo admin)
+- `GET /api/users/:id` - Obtener usuario (mismo usuario o admin)
+- `PUT /api/users/:id` - Actualizar usuario completo (solo admin)
+- `PATCH /api/users/:id` - Actualizar usuario parcial (solo admin)
+- `DELETE /api/users/:id` - Eliminar usuario (solo admin)
+- `POST /api/users/:id/activate` - Activar usuario (solo admin)
+- `POST /api/users/:id/deactivate` - Desactivar usuario (solo admin)
+- `POST /api/users/:id/change-password` - Cambiar contraseña (mismo usuario o admin)
+
+**Nota:** Todos los endpoints de usuarios requieren autenticación (token JWT en el header `Authorization: Bearer <token>`).
