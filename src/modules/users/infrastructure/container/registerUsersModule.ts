@@ -13,6 +13,7 @@ import { GetUserByIdUseCase } from '../../application/use-cases/GetUserByIdUseCa
 import { GetUserByUsernameUseCase } from '../../application/use-cases/GetUserByUsernameUseCase';
 import { ListUsersUseCase } from '../../application/use-cases/ListUsersUseCase';
 import { UpdateUserUseCase } from '../../application/use-cases/UpdateUserUseCase';
+import { UpdateMyProfileUseCase } from '../../application/use-cases/UpdateMyProfileUseCase';
 import { DeleteUserUseCase } from '../../application/use-cases/DeleteUserUseCase';
 import { ActivateUserUseCase } from '../../application/use-cases/ActivateUserUseCase';
 import { DeactivateUserUseCase } from '../../application/use-cases/DeactivateUserUseCase';
@@ -113,6 +114,13 @@ export function registerUsersModule(container: AwilixContainer): void {
   // UpdateUserUseCase - Necesita userRepository, eventBus, userAuthorizationService
   container.register({
     updateUserUseCase: asClass(UpdateUserUseCase, {
+      lifetime: Lifetime.SINGLETON,
+    }),
+  });
+
+  // UpdateMyProfileUseCase - Necesita userRepository, eventBus (no necesita userAuthorizationService porque siempre es el propio usuario)
+  container.register({
+    updateMyProfileUseCase: asClass(UpdateMyProfileUseCase, {
       lifetime: Lifetime.SINGLETON,
     }),
   });

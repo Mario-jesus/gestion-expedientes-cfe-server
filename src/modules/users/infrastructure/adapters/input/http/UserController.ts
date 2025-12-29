@@ -5,12 +5,14 @@ import { ICreateUserUseCase } from '@modules/users/application/ports/input/ICrea
 import { IGetUserByIdUseCase } from '@modules/users/application/ports/input/IGetUserByIdUseCase';
 import { IListUsersUseCase } from '@modules/users/application/ports/input/IListUsersUseCase';
 import { IUpdateUserUseCase } from '@modules/users/application/ports/input/IUpdateUserUseCase';
+import { IUpdateMyProfileUseCase } from '@modules/users/application/ports/input/IUpdateMyProfileUseCase';
 import { IDeleteUserUseCase } from '@modules/users/application/ports/input/IDeleteUserUseCase';
 import { IActivateUserUseCase } from '@modules/users/application/ports/input/IActivateUserUseCase';
 import { IDeactivateUserUseCase } from '@modules/users/application/ports/input/IDeactivateUserUseCase';
 import { IChangeUserPasswordUseCase } from '@modules/users/application/ports/input/IChangeUserPasswordUseCase';
 import { CreateUserDTO } from '@modules/users/application/dto/CreateUserDTO';
 import { UpdateUserDTO } from '@modules/users/application/dto/UpdateUserDTO';
+import { UpdateProfileDTO } from '@modules/users/application/dto/UpdateProfileDTO';
 import { ListUsersDTO } from '@modules/users/application/dto/ListUsersDTO';
 import { ChangePasswordDTO } from '@modules/users/application/dto/ChangePasswordDTO';
 import { UserRole } from '@modules/users/domain/enums/UserRole';
@@ -34,6 +36,7 @@ export class UserController {
     private readonly getUserByIdUseCase: IGetUserByIdUseCase,
     private readonly listUsersUseCase: IListUsersUseCase,
     private readonly updateUserUseCase: IUpdateUserUseCase,
+    private readonly updateMyProfileUseCase: IUpdateMyProfileUseCase,
     private readonly deleteUserUseCase: IDeleteUserUseCase,
     private readonly activateUserUseCase: IActivateUserUseCase,
     private readonly deactivateUserUseCase: IDeactivateUserUseCase,
@@ -320,6 +323,52 @@ export class UserController {
         id: user.id,
         updatedAt: user.updatedAt,
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * PATCH /users/me
+   * Actualiza el perfil propio del usuario autenticado
+   * Requiere autenticación
+   * Solo permite actualizar nombre y email (no username, role, isActive)
+   */
+  async updateMyProfile(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = this.getCurrentUserId(req);
+      if (!userId) {
+        res.status(401).json({
+          error: 'Usuario no autenticado',
+          code: 'UNAUTHORIZED',
+        });
+        return;
+      }
+
+      // Filtrar solo los campos permitidos (name y email)
+      // Esto previene que campos no permitidos como role, isActive, username sean procesados
+      const dto: UpdateProfileDTO = {
+        ...(req.body.name !== undefined && { name: req.body.name }),
+        ...(req.body.email !== undefined && { email: req.body.email }),
+      };
+
+      this.logger.info('Actualizando perfil propio', {
+        userId,
+        fieldsToUpdate: {
+          email: dto.email !== undefined,
+          name: dto.name !== undefined,
+        },
+        ip: req.ip,
+        userAgent: req.get('user-agent'),
+      });
+
+      const user = await this.updateMyProfileUseCase.execute(userId, dto);
+
+      this.logger.info('Perfil actualizado exitosamente', {
+        userId,
+      });
+
+      res.status(200).json(user.toPublicJSON());
     } catch (error) {
       next(error);
     }

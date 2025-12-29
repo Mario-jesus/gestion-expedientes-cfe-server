@@ -693,5 +693,171 @@ describe('Users E2E Tests', () => {
       expect(response.status).toBe(401);
     });
   });
-});
 
+  describe('PATCH /api/users/me', () => {
+    // Asegurar que el usuario regular esté activo antes de los tests
+    beforeEach(async () => {
+      // Verificar y reactivar el usuario regular si es necesario
+      const user = await userRepository.findById(regularUser.id);
+      if (user && !user.isActive) {
+        user.activate();
+        await userRepository.update(user);
+      }
+    });
+
+    it('debe actualizar el perfil propio del usuario autenticado', async () => {
+      const response = await request(app)
+        .patch('/api/users/me')
+        .set('Authorization', `Bearer ${regularToken}`)
+        .send({
+          name: 'Updated Regular User',
+          email: 'updateduser@example.com',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.name).toBe('Updated Regular User');
+      expect(response.body.email).toBe('updateduser@example.com');
+      expect(response.body.username).toBe('user'); // No debe cambiar
+      expect(response.body.role).toBe('operator'); // No debe cambiar
+      expect(response.body.isActive).toBe(true); // No debe cambiar
+    });
+
+    it('debe actualizar solo el nombre si solo se envía name', async () => {
+      const response = await request(app)
+        .patch('/api/users/me')
+        .set('Authorization', `Bearer ${regularToken}`)
+        .send({
+          name: 'Only Name Updated',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.name).toBe('Only Name Updated');
+      // El email debe mantenerse (el último que se actualizó en el test anterior)
+      expect(response.body.email).toBe('updateduser@example.com');
+    });
+
+    it('debe actualizar solo el email si solo se envía email', async () => {
+      const response = await request(app)
+        .patch('/api/users/me')
+        .set('Authorization', `Bearer ${regularToken}`)
+        .send({
+          email: 'onlyemail@example.com',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.email).toBe('onlyemail@example.com');
+      // El nombre debe mantenerse
+      expect(response.body.name).toBe('Only Name Updated');
+    });
+
+    it('debe retornar el mismo usuario si no hay cambios', async () => {
+      // Primero obtener el usuario actual
+      const getResponse = await request(app)
+        .get(`/api/users/${regularUser.id}`)
+        .set('Authorization', `Bearer ${regularToken}`);
+
+      const currentName = getResponse.body.name;
+      const currentEmail = getResponse.body.email;
+
+      // Intentar actualizar con los mismos valores
+      const response = await request(app)
+        .patch('/api/users/me')
+        .set('Authorization', `Bearer ${regularToken}`)
+        .send({
+          name: currentName,
+          email: currentEmail,
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.name).toBe(currentName);
+      expect(response.body.email).toBe(currentEmail);
+    });
+
+    it('debe retornar error si el email ya está en uso por otro usuario', async () => {
+      const response = await request(app)
+        .patch('/api/users/me')
+        .set('Authorization', `Bearer ${regularToken}`)
+        .send({
+          email: 'admin@example.com', // Email del admin
+        });
+
+      expect(response.status).toBe(409); // Conflict
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toContain('email');
+    });
+
+    it('debe permitir actualizar el email al mismo valor (no es duplicado)', async () => {
+      // Primero obtener el email actual
+      const getResponse = await request(app)
+        .get(`/api/users/${regularUser.id}`)
+        .set('Authorization', `Bearer ${regularToken}`);
+
+      const currentEmail = getResponse.body.email;
+
+      // Intentar actualizar con el mismo email
+      const response = await request(app)
+        .patch('/api/users/me')
+        .set('Authorization', `Bearer ${regularToken}`)
+        .send({
+          email: currentEmail,
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.email).toBe(currentEmail);
+    });
+
+    it('debe retornar 401 sin token', async () => {
+      const response = await request(app)
+        .patch('/api/users/me')
+        .send({
+          name: 'Unauthorized Update',
+        });
+
+      expect(response.status).toBe(401);
+    });
+
+    it('debe retornar 401 con token inválido', async () => {
+      const response = await request(app)
+        .patch('/api/users/me')
+        .set('Authorization', 'Bearer invalid-token')
+        .send({
+          name: 'Invalid Token Update',
+        });
+
+      expect(response.status).toBe(401);
+    });
+
+    it('no debe permitir actualizar campos no permitidos (role, isActive)', async () => {
+      // Intentar enviar role e isActive (deben ser ignorados)
+      const response = await request(app)
+        .patch('/api/users/me')
+        .set('Authorization', `Bearer ${regularToken}`)
+        .send({
+          name: 'Test User',
+          email: 'test@example.com',
+          role: 'admin', // No debe ser actualizado
+          isActive: false, // No debe ser actualizado
+        });
+
+      expect(response.status).toBe(200);
+      // Verificar que role e isActive no cambiaron
+      expect(response.body.role).toBe('operator'); // Debe mantenerse
+      expect(response.body.isActive).toBe(true); // Debe mantenerse
+    });
+
+    it('debe funcionar para usuarios administradores también', async () => {
+      const response = await request(app)
+        .patch('/api/users/me')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          name: 'Updated Admin User',
+          email: 'updatedadmin@example.com',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.name).toBe('Updated Admin User');
+      expect(response.body.email).toBe('updatedadmin@example.com');
+      expect(response.body.role).toBe('admin'); // No debe cambiar
+    });
+  });
+});

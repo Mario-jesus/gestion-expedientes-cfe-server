@@ -34,6 +34,28 @@ export function createUserRoutes(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   router.get('/', authMiddleware as any, adminOnly as any, controller.list.bind(controller) as any);
 
+  // IMPORTANTE: Las rutas específicas (sin parámetros) deben ir ANTES de las rutas con parámetros
+  // para que Express las capture correctamente
+
+  // PATCH /users/me - Actualizar perfil propio (solo autenticación requerida)
+  // Esta ruta debe ir antes de /:id para evitar que "me" sea interpretado como un ID
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  router.patch('/me', authMiddleware as any, controller.updateMyProfile.bind(controller) as any);
+
+  // Rutas específicas con parámetros (deben ir antes de las rutas genéricas con parámetros)
+  // POST /users/:id/activate - Activar usuario (solo admin)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  router.post('/:id/activate', authMiddleware as any, adminOnly as any, controller.activate.bind(controller) as any);
+
+  // POST /users/:id/deactivate - Desactivar usuario (solo admin)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  router.post('/:id/deactivate', authMiddleware as any, adminOnly as any, controller.deactivate.bind(controller) as any);
+
+  // POST /users/:id/change-password - Cambiar contraseña (mismo usuario o admin)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  router.post('/:id/change-password', authMiddleware as any, allowSelfOrAdminMiddleware as any, controller.changePassword.bind(controller) as any);
+
+  // Rutas genéricas con parámetros (deben ir al final)
   // GET /users/:id - Obtener usuario por ID (mismo usuario o admin)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   router.get('/:id', authMiddleware as any, allowSelfOrAdminMiddleware as any, controller.getById.bind(controller) as any);
@@ -49,18 +71,6 @@ export function createUserRoutes(
   // DELETE /users/:id - Eliminar usuario (solo admin)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   router.delete('/:id', authMiddleware as any, adminOnly as any, controller.delete.bind(controller) as any);
-
-  // POST /users/:id/activate - Activar usuario (solo admin)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  router.post('/:id/activate', authMiddleware as any, adminOnly as any, controller.activate.bind(controller) as any);
-
-  // POST /users/:id/deactivate - Desactivar usuario (solo admin)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  router.post('/:id/deactivate', authMiddleware as any, adminOnly as any, controller.deactivate.bind(controller) as any);
-
-  // POST /users/:id/change-password - Cambiar contraseña (mismo usuario o admin)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  router.post('/:id/change-password', authMiddleware as any, allowSelfOrAdminMiddleware as any, controller.changePassword.bind(controller) as any);
 
   return router;
 }

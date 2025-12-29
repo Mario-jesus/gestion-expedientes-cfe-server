@@ -5,6 +5,7 @@ export { GetUserByUsernameUseCase } from './GetUserByUsernameUseCase';
 export { GetUserByIdUseCase } from './GetUserByIdUseCase';
 export { CreateUserUseCase } from './CreateUserUseCase';
 export { UpdateUserUseCase } from './UpdateUserUseCase';
+export { UpdateMyProfileUseCase } from './UpdateMyProfileUseCase';
 export { ChangeUserPasswordUseCase } from './ChangeUserPasswordUseCase';
 export { ActivateUserUseCase } from './ActivateUserUseCase';
 export { DeactivateUserUseCase } from './DeactivateUserUseCase';
