@@ -20,15 +20,22 @@ import { UserRole } from '@modules/users/domain/enums/UserRole';
 import { createTestApp } from '@/__tests__/helpers/createTestApp';
 import { InMemoryUserRepository } from '@/__tests__/mocks/InMemoryUserRepository';
 import { InMemoryRefreshTokenRepository } from '@/__tests__/mocks/InMemoryRefreshTokenRepository';
+import { InMemoryLogEntryRepository } from '@/__tests__/mocks/InMemoryLogEntryRepository';
+import { LogEntry } from '@modules/audit/domain/entities/LogEntry';
+import { LogAction } from '@modules/audit/domain/enums/LogAction';
+import { LogEntity } from '@modules/audit/domain/enums/LogEntity';
+import { ILogEntryRepository } from '@modules/audit/domain/ports/output/ILogEntryRepository';
 import { asFunction } from 'awilix';
 import { registerUsersModule } from '@modules/users/infrastructure/container';
 import { registerAuthModule } from '@modules/auth/infrastructure/container';
+import { registerAuditModule } from '@modules/audit/infrastructure/container';
 
 describe('Users E2E Tests', () => {
   let app: ReturnType<typeof createTestApp>;
   let adminUser: User;
   let regularUser: User;
   let userRepository: IUserRepository;
+  let logEntryRepository: ILogEntryRepository;
   let passwordHasher: IPasswordHasher;
   let database: IDatabase;
   let adminToken: string;
@@ -51,6 +58,7 @@ describe('Users E2E Tests', () => {
     // Registrar módulos primero
     registerUsersModule(container);
     registerAuthModule(container);
+    registerAuditModule(container);
 
     // Registrar mocks de repositorios que sobrescriben los registros de los módulos
     container.register({
@@ -65,11 +73,18 @@ describe('Users E2E Tests', () => {
       }),
     });
 
+    container.register({
+      logEntryRepository: asFunction(() => new InMemoryLogEntryRepository(logger), {
+        lifetime: 'SINGLETON',
+      }),
+    });
+
     // Crear la aplicación Express para tests
     app = createTestApp(true);
 
     // Resolver dependencias
     userRepository = container.resolve<IUserRepository>('userRepository');
+    logEntryRepository = container.resolve<ILogEntryRepository>('logEntryRepository');
     passwordHasher = container.resolve<IPasswordHasher>('passwordHasher');
 
     // Crear usuario administrador de prueba
@@ -858,6 +873,183 @@ describe('Users E2E Tests', () => {
       expect(response.body.name).toBe('Updated Admin User');
       expect(response.body.email).toBe('updatedadmin@example.com');
       expect(response.body.role).toBe('admin'); // No debe cambiar
+    });
+  });
+
+  describe('GET /api/users/me/activity', () => {
+    // Crear algunos logs de prueba antes de los tests
+    beforeAll(async () => {
+      // Crear logs para el usuario regular
+      const log1 = LogEntry.create({
+        userId: regularUser.id,
+        action: LogAction.LOGIN,
+        entity: LogEntity.USER,
+        entityId: regularUser.id,
+        metadata: { ipAddress: '127.0.0.1', userAgent: 'test-agent' },
+      });
+      await logEntryRepository.create(log1);
+
+      const log2 = LogEntry.create({
+        userId: regularUser.id,
+        action: LogAction.UPDATE,
+        entity: LogEntity.USER,
+        entityId: regularUser.id,
+        metadata: { updatedFields: ['name'] },
+      });
+      await logEntryRepository.create(log2);
+
+      const log3 = LogEntry.create({
+        userId: regularUser.id,
+        action: LogAction.VIEW,
+        entity: LogEntity.DOCUMENT,
+        entityId: 'doc-123',
+        metadata: { fileName: 'test.pdf' },
+      });
+      await logEntryRepository.create(log3);
+
+      // Crear un log para otro usuario (no debe aparecer en los resultados)
+      const log4 = LogEntry.create({
+        userId: adminUser.id,
+        action: LogAction.CREATE,
+        entity: LogEntity.USER,
+        entityId: 'user-456',
+        metadata: { username: 'other-user' },
+      });
+      await logEntryRepository.create(log4);
+    });
+
+    it('debe obtener el historial de actividad del usuario autenticado', async () => {
+      const response = await request(app)
+        .get('/api/users/me/activity')
+        .set('Authorization', `Bearer ${regularToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('data');
+      expect(response.body).toHaveProperty('pagination');
+      expect(Array.isArray(response.body.data)).toBe(true);
+      expect(response.body.data.length).toBeGreaterThan(0);
+
+      // Verificar que todos los logs pertenecen al usuario regular
+      response.body.data.forEach((log: any) => {
+        expect(log.userId).toBe(regularUser.id);
+      });
+
+      // Verificar estructura de un log
+      const firstLog = response.body.data[0];
+      expect(firstLog).toHaveProperty('id');
+      expect(firstLog).toHaveProperty('userId');
+      expect(firstLog).toHaveProperty('action');
+      expect(firstLog).toHaveProperty('entity');
+      expect(firstLog).toHaveProperty('entityId');
+      expect(firstLog).toHaveProperty('createdAt');
+    });
+
+    it('debe paginar los resultados correctamente', async () => {
+      const response = await request(app)
+        .get('/api/users/me/activity?limit=2&offset=0')
+        .set('Authorization', `Bearer ${regularToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.length).toBeLessThanOrEqual(2);
+      expect(response.body.pagination.limit).toBe(2);
+      expect(response.body.pagination.offset).toBe(0);
+      expect(response.body.pagination.total).toBeGreaterThan(0);
+      expect(response.body.pagination.totalPages).toBeGreaterThan(0);
+    });
+
+    it('debe retornar resultados paginados con offset', async () => {
+      const firstPage = await request(app)
+        .get('/api/users/me/activity?limit=1&offset=0')
+        .set('Authorization', `Bearer ${regularToken}`);
+
+      const secondPage = await request(app)
+        .get('/api/users/me/activity?limit=1&offset=1')
+        .set('Authorization', `Bearer ${regularToken}`);
+
+      expect(firstPage.status).toBe(200);
+      expect(secondPage.status).toBe(200);
+
+      // Los resultados deben ser diferentes
+      if (firstPage.body.data.length > 0 && secondPage.body.data.length > 0) {
+        expect(firstPage.body.data[0].id).not.toBe(secondPage.body.data[0].id);
+      }
+    });
+
+    it('debe usar valores por defecto para limit y offset si no se proporcionan', async () => {
+      const response = await request(app)
+        .get('/api/users/me/activity')
+        .set('Authorization', `Bearer ${regularToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.pagination.limit).toBe(20); // Default
+      expect(response.body.pagination.offset).toBe(0); // Default
+    });
+
+    it('debe retornar solo los logs del usuario autenticado, no de otros usuarios', async () => {
+      const response = await request(app)
+        .get('/api/users/me/activity')
+        .set('Authorization', `Bearer ${regularToken}`);
+
+      expect(response.status).toBe(200);
+
+      // Verificar que ningún log pertenezca al admin
+      response.body.data.forEach((log: any) => {
+        expect(log.userId).toBe(regularUser.id);
+        expect(log.userId).not.toBe(adminUser.id);
+      });
+    });
+
+    it('debe funcionar para usuarios administradores también', async () => {
+      // Crear un log para el admin
+      const adminLog = LogEntry.create({
+        userId: adminUser.id,
+        action: LogAction.CREATE,
+        entity: LogEntity.USER,
+        entityId: 'user-789',
+        metadata: { username: 'new-user' },
+      });
+      await logEntryRepository.create(adminLog);
+
+      const response = await request(app)
+        .get('/api/users/me/activity')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.length).toBeGreaterThan(0);
+
+      // Verificar que todos los logs pertenecen al admin
+      response.body.data.forEach((log: any) => {
+        expect(log.userId).toBe(adminUser.id);
+      });
+    });
+
+    it('debe retornar 401 sin token', async () => {
+      const response = await request(app).get('/api/users/me/activity');
+
+      expect(response.status).toBe(401);
+    });
+
+    it('debe retornar 401 con token inválido', async () => {
+      const response = await request(app)
+        .get('/api/users/me/activity')
+        .set('Authorization', 'Bearer invalid-token');
+
+      expect(response.status).toBe(401);
+    });
+
+    it('debe ordenar los logs por fecha descendente (más recientes primero)', async () => {
+      const response = await request(app)
+        .get('/api/users/me/activity')
+        .set('Authorization', `Bearer ${regularToken}`);
+
+      expect(response.status).toBe(200);
+
+      if (response.body.data.length > 1) {
+        const dates = response.body.data.map((log: any) => new Date(log.createdAt).getTime());
+        for (let i = 0; i < dates.length - 1; i++) {
+          expect(dates[i]).toBeGreaterThanOrEqual(dates[i + 1]);
+        }
+      }
     });
   });
 });

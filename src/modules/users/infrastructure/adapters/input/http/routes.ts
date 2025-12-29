@@ -42,6 +42,11 @@ export function createUserRoutes(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   router.patch('/me', authMiddleware as any, controller.updateMyProfile.bind(controller) as any);
 
+  // GET /users/me/activity - Obtener historial de actividad propio (solo autenticación requerida)
+  // Esta ruta debe ir antes de /:id para evitar que "me" sea interpretado como un ID
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  router.get('/me/activity', authMiddleware as any, controller.getMyActivity.bind(controller) as any);
+
   // Rutas específicas con parámetros (deben ir antes de las rutas genéricas con parámetros)
   // POST /users/:id/activate - Activar usuario (solo admin)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -10,6 +10,7 @@ import { IDeleteUserUseCase } from '@modules/users/application/ports/input/IDele
 import { IActivateUserUseCase } from '@modules/users/application/ports/input/IActivateUserUseCase';
 import { IDeactivateUserUseCase } from '@modules/users/application/ports/input/IDeactivateUserUseCase';
 import { IChangeUserPasswordUseCase } from '@modules/users/application/ports/input/IChangeUserPasswordUseCase';
+import { IGetLogEntriesByUserIdUseCase } from '@modules/audit/application/ports/input/IGetLogEntriesByUserIdUseCase';
 import { CreateUserDTO } from '@modules/users/application/dto/CreateUserDTO';
 import { UpdateUserDTO } from '@modules/users/application/dto/UpdateUserDTO';
 import { UpdateProfileDTO } from '@modules/users/application/dto/UpdateProfileDTO';
@@ -41,6 +42,7 @@ export class UserController {
     private readonly activateUserUseCase: IActivateUserUseCase,
     private readonly deactivateUserUseCase: IDeactivateUserUseCase,
     private readonly changeUserPasswordUseCase: IChangeUserPasswordUseCase,
+    private readonly getLogEntriesByUserIdUseCase: IGetLogEntriesByUserIdUseCase,
     private readonly logger: ILogger
   ) {}
 
@@ -369,6 +371,47 @@ export class UserController {
       });
 
       res.status(200).json(user.toPublicJSON());
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /users/me/activity
+   * Obtiene el historial de actividad del usuario autenticado
+   * Requiere autenticación
+   */
+  async getMyActivity(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = this.getCurrentUserId(req);
+      if (!userId) {
+        res.status(401).json({
+          error: 'Usuario no autenticado',
+          code: 'UNAUTHORIZED',
+        });
+        return;
+      }
+
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 20;
+      const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+
+      this.logger.debug('Obteniendo historial de actividad del usuario', {
+        userId,
+        limit,
+        offset,
+      });
+
+      const result = await this.getLogEntriesByUserIdUseCase.execute(userId, limit, offset);
+
+      res.status(200).json({
+        data: result.logs.map((log) => log.toPublicJSON()),
+        pagination: {
+          total: result.total,
+          limit,
+          offset,
+          totalPages: Math.ceil(result.total / limit),
+        },
+      });
     } catch (error) {
       next(error);
     }

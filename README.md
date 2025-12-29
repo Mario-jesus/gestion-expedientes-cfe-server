@@ -872,6 +872,8 @@ Una vez que el servidor esté corriendo, los endpoints disponibles son:
 - `POST /api/users/:id/activate` - Activar usuario (solo admin)
 - `POST /api/users/:id/deactivate` - Desactivar usuario (solo admin)
 - `POST /api/users/:id/change-password` - Cambiar contraseña (mismo usuario o admin)
+- `PATCH /api/users/me` - Actualizar perfil propio (solo name y email)
+- `GET /api/users/me/activity` - Obtener historial de actividad propio (con paginación)
 
 #### Minutas (`/api/minutes`)
 - `POST /api/minutes` - Crear/subir minuta (con archivo, multipart/form-data)

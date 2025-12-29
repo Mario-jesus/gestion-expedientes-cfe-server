@@ -76,9 +76,10 @@ export function createTestApp(
   // Si el mock ya está registrado, registerAuditModule no lo sobrescribirá
   // IMPORTANTE: Si el repositorio no estaba registrado antes, registerAuditModule no intentará
   // suscribir eventos para evitar que el repositorio real intente conectarse a MongoDB
-  if (!skipModuleRegistration) {
-    registerAuditModule(container);
-  }
+  // NOTA: El módulo audit SIEMPRE debe registrarse porque UserController ahora depende de él
+  // (getLogEntriesByUserIdUseCase). Si skipModuleRegistration es true, aún necesitamos registrar
+  // audit para que UserController pueda resolverse, pero no suscribiremos eventos si no hay repositorio.
+  registerAuditModule(container);
 
   // Resolver logger del container
   const logger = resolve<ILogger>('logger');
