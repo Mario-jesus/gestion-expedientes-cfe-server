@@ -41,6 +41,15 @@ export function createCatalogRoutes(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   router.get('/areas', authMiddleware as any, areaController.list.bind(areaController) as any);
 
+  // GET /areas/:id/adscripciones - Obtener adscripciones del área
+  // IMPORTANTE: Esta ruta debe ir antes de GET /areas/:id para evitar que "adscripciones" sea interpretado como un ID
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  router.get(
+    '/areas/:id/adscripciones',
+    authMiddleware as any,
+    areaController.getAdscripciones.bind(areaController) as any
+  );
+
   // GET /areas/:id - Obtener área por ID (todos los usuarios autenticados)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   router.get('/areas/:id', authMiddleware as any, areaController.getById.bind(areaController) as any);
