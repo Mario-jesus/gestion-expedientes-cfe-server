@@ -19,6 +19,7 @@ import { registerCollaboratorsModule } from '@modules/collaborators/infrastructu
 import { registerCatalogsModule } from '@modules/catalogs/infrastructure/container';
 import { registerDocumentsModule } from '@modules/documents/infrastructure/container';
 import { registerMinutesModule } from '@modules/minutes/infrastructure/container';
+import { registerAuditModule } from '@modules/audit/infrastructure/container';
 import { UserController } from '@modules/users/infrastructure/adapters/input/http';
 import { createUserRoutes } from '@modules/users/infrastructure/adapters/input/http';
 import { AuthController } from '@modules/auth/infrastructure/adapters/input/http';
@@ -30,6 +31,8 @@ import { DocumentController } from '@modules/documents/infrastructure/adapters/i
 import { createDocumentRoutes } from '@modules/documents/infrastructure/adapters/input/http';
 import { MinuteController } from '@modules/minutes/infrastructure/adapters/input/http';
 import { createMinuteRoutes } from '@modules/minutes/infrastructure/adapters/input/http';
+import { LogEntryController } from '@modules/audit/infrastructure/adapters/input/http';
+import { createAuditRoutes } from '@modules/audit/infrastructure/adapters/input/http';
 import { ITokenService } from '@modules/auth/domain/ports/output/ITokenService';
 import { TokenVerifierAdapter } from '@modules/auth/infrastructure/adapters/output/token/TokenVerifierAdapter';
 import { ITokenVerifier } from '@shared/infrastructure/http/middleware/types';
@@ -58,12 +61,23 @@ export function createTestApp(
     registerCatalogsModule(container);
     registerDocumentsModule(container);
     registerMinutesModule(container);
+    // Nota: registerAuditModule se registra después de afterRegisterModules
+    // porque resuelve dependencias inmediatamente al suscribir eventos
   }
 
-  // Ejecutar función opcional después de registrar módulos pero antes de resolver dependencias
+  // Ejecutar función opcional después de registrar módulos pero antes de registrar audit
   // Esto permite sobrescribir los registros de los módulos con mocks
   if (afterRegisterModules) {
     afterRegisterModules(container);
+  }
+
+  // Registrar módulo audit DESPUÉS de afterRegisterModules para que los mocks estén disponibles
+  // porque registerAuditModule resuelve dependencias inmediatamente al suscribir eventos
+  // Si el mock ya está registrado, registerAuditModule no lo sobrescribirá
+  // IMPORTANTE: Si el repositorio no estaba registrado antes, registerAuditModule no intentará
+  // suscribir eventos para evitar que el repositorio real intente conectarse a MongoDB
+  if (!skipModuleRegistration) {
+    registerAuditModule(container);
   }
 
   // Resolver logger del container
@@ -156,6 +170,15 @@ export function createTestApp(
   } catch (error) {
     // El módulo catalogs no está registrado, omitir sus rutas
     // Esto permite que los tests de otros módulos funcionen sin necesidad de registrar catalogs
+  }
+
+  // Rutas del módulo audit (solo si el módulo está registrado)
+  try {
+    const logEntryController = resolve<LogEntryController>('logEntryController');
+    const auditRoutes = createAuditRoutes(logEntryController, tokenVerifier, logger);
+    app.use('/api/audit', auditRoutes);
+  } catch (error) {
+    // El módulo audit no está registrado, omitir sus rutas
   }
 
   // Manejo de rutas no encontradas

@@ -12,3 +12,4 @@ export { InMemoryDocumentRepository } from './InMemoryDocumentRepository';
 export { InMemoryFileStorageService } from './InMemoryFileStorageService';
 export { InMemoryCollaboratorRepository } from './InMemoryCollaboratorRepository';
 export { InMemoryMinuteRepository } from './InMemoryMinuteRepository';
+export { InMemoryLogEntryRepository } from './InMemoryLogEntryRepository';

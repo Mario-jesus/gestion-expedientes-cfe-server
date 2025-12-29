@@ -41,4 +41,7 @@ import '../../../../../../../modules/documents/infrastructure/adapters/output/da
 // Módulo: minutes
 import '../../../../../../../modules/minutes/infrastructure/adapters/output/database/mongo';
 
+// Módulo: audit
+import '../../../../../../../modules/audit/infrastructure/adapters/output/database/mongo';
+
 export {}; // Para que TypeScript lo trate como módulo

@@ -25,6 +25,9 @@ import { createDocumentRoutes } from './modules/documents/infrastructure/adapter
 import { registerMinutesModule } from './modules/minutes/infrastructure/container';
 import { MinuteController } from './modules/minutes/infrastructure/adapters/input/http';
 import { createMinuteRoutes } from './modules/minutes/infrastructure/adapters/input/http';
+import { registerAuditModule } from './modules/audit/infrastructure/container';
+import { LogEntryController } from './modules/audit/infrastructure/adapters/input/http';
+import { createAuditRoutes } from './modules/audit/infrastructure/adapters/input/http';
 import { ITokenService } from './modules/auth/domain/ports/output/ITokenService';
 import { TokenVerifierAdapter } from './modules/auth/infrastructure/adapters/output/token/TokenVerifierAdapter';
 import { ITokenVerifier } from './shared/infrastructure/http/middleware/types';
@@ -43,6 +46,8 @@ import { ITokenVerifier } from './shared/infrastructure/http/middleware/types';
 // - ListCollaboratorsUseCase necesita documentRepository (de documents)
 // Nota: minutes se registra después de documents porque:
 // - CreateMinuteUseCase necesita fileStorageService (de documents)
+// Nota: audit se registra después de todos los módulos porque:
+// - AuditLogEventHandler necesita suscribirse a todos los eventos de dominio
 // Como las dependencias se resuelven lazy en Awilix, este orden funciona correctamente
 // Esto debe hacerse antes de resolver cualquier dependencia del módulo
 registerUsersModule(container);
@@ -51,6 +56,7 @@ registerCollaboratorsModule(container);
 registerDocumentsModule(container);
 registerMinutesModule(container);
 registerCatalogsModule(container);
+registerAuditModule(container);
 
 // Resolver logger del container
 const logger = resolve<ILogger>('logger');
@@ -155,6 +161,11 @@ app.use('/api/documents', documentRoutes);
 const minuteController = resolve<MinuteController>('minuteController');
 const minuteRoutes = createMinuteRoutes(minuteController, tokenVerifier, logger);
 app.use('/api/minutes', minuteRoutes);
+
+// Rutas del módulo audit
+const logEntryController = resolve<LogEntryController>('logEntryController');
+const auditRoutes = createAuditRoutes(logEntryController, tokenVerifier, logger);
+app.use('/api/audit', auditRoutes);
 
 logger.debug('Module routes registered');
 
