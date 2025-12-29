@@ -14,24 +14,30 @@ import { DomainException } from '../../domain/exceptions/DomainException';
  */
 export function errorHandler(logger: ILogger) {
   return (err: Error, req: Request, res: Response, _next: NextFunction): void => {
-    // Log del error
+    // Log del error (incluyendo stack trace para logs internos)
     logger.error('Unhandled error in request', err, {
       path: req.path,
       method: req.method,
       body: req.body,
     });
 
-    const isDevelopment = config.server.isDevelopment;
+    // Verificación estricta: NUNCA enviar stack trace en producción
+    // Doble verificación para mayor seguridad
+    const isDevelopment = config.server.isDevelopment && config.server.nodeEnv === 'development';
+    const isProduction = config.server.isProduction || config.server.nodeEnv === 'production';
 
     // Si es una DomainException, usar su formato
     if (err instanceof DomainException) {
       const response = err.toJSON();
-      res.status(err.statusCode).json({
-        ...response,
-        ...(isDevelopment && {
-          stack: err.stack,
-        }),
-      });
+
+      // Solo incluir stack trace si estamos en desarrollo Y no en producción
+      const responseBody: any = { ...response };
+
+      if (isDevelopment && !isProduction) {
+        responseBody.stack = err.stack;
+      }
+
+      res.status(err.statusCode).json(responseBody);
       return;
     }
 
@@ -39,13 +45,22 @@ export function errorHandler(logger: ILogger) {
     const statusCode = (err as any).statusCode || 500;
 
     // Respuesta de error genérico
-    res.status(statusCode).json({
-      error: err.message || 'Internal server error',
+    // En producción, nunca exponer detalles internos o stack traces
+    const responseBody: any = {
+      error: isProduction 
+        ? 'Error interno del servidor' // Mensaje genérico en producción
+        : (err.message || 'Internal server error'),
       code: 'INTERNAL_ERROR',
-      ...(isDevelopment && {
-        stack: err.stack,
-        details: (err as any).details,
-      }),
-    });
+    };
+
+    // Solo incluir stack trace y detalles si estamos en desarrollo Y no en producción
+    if (isDevelopment && !isProduction) {
+      responseBody.stack = err.stack;
+      if ((err as any).details) {
+        responseBody.details = (err as any).details;
+      }
+    }
+
+    res.status(statusCode).json(responseBody);
   };
 }
