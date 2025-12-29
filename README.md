@@ -917,3 +917,27 @@ Una vez que el servidor esté corriendo, los endpoints disponibles son:
 - `GET /api/audit/:id` - Obtener log por ID
 
 **Nota:** Todos los endpoints requieren autenticación (token JWT en el header `Authorization: Bearer <token>`).
+
+### Documentación de la API (Swagger/OpenAPI)
+
+El proyecto incluye documentación interactiva de la API usando Swagger/OpenAPI:
+
+- **Swagger UI**: `http://localhost:4000/api-docs` - Interfaz web interactiva para explorar y probar los endpoints
+- **Especificación OpenAPI JSON**: `http://localhost:4000/api-docs.json` - Especificación OpenAPI en formato JSON
+
+**Características:**
+- Documentación interactiva de todos los endpoints
+- Prueba de endpoints directamente desde el navegador
+- Autenticación JWT integrada (botón "Authorize")
+- Ejemplos de request/response
+- Esquemas de datos documentados
+
+**Uso:**
+1. Inicia el servidor: `npm run dev`
+2. Abre tu navegador en: `http://localhost:4000/api-docs`
+3. Para probar endpoints protegidos:
+   - Haz login usando `POST /api/auth/login`
+   - Copia el `token` de la respuesta
+   - Haz clic en el botón "Authorize" (arriba a la derecha)
+   - Pega el token en el campo "Value" y haz clic en "Authorize"
+   - Ahora puedes probar todos los endpoints protegidos

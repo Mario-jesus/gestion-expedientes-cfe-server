@@ -1,11 +1,13 @@
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import path from 'path';
+import swaggerUi from 'swagger-ui-express';
 import { resolve, container } from './shared/infrastructure';
 import { config } from './shared/config';
 import { buildCorsOptions } from './shared/infrastructure/http/cors';
 import { ILogger } from './shared/domain';
 import { errorHandler, notFoundHandler } from './shared/infrastructure';
+import { swaggerSpec } from './shared/infrastructure/http/swagger';
 
 // Registrar módulos
 import { registerUsersModule } from './modules/users/infrastructure/container';
@@ -113,6 +115,34 @@ app.use('/uploads', express.static(uploadsDir, {
 logger.debug('Static file serving configured', {
   uploadsDir,
   staticPath: '/uploads',
+});
+
+// ============================================
+// SWAGGER/OPENAPI DOCUMENTATION
+// ============================================
+// Documentación interactiva de la API disponible en /api-docs
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }', // Ocultar barra superior de Swagger
+  customSiteTitle: 'API Gestión de Expedientes CFE - Documentación',
+  customfavIcon: '/favicon.ico',
+  swaggerOptions: {
+    persistAuthorization: true, // Mantener el token JWT después de recargar
+    displayRequestDuration: true, // Mostrar tiempo de respuesta
+    filter: true, // Habilitar filtro de búsqueda
+    showExtensions: true,
+    showCommonExtensions: true,
+  },
+}));
+
+// Endpoint JSON de la especificación OpenAPI
+app.get('/api-docs.json', (_req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
+logger.debug('Swagger documentation configured', {
+  swaggerUi: '/api-docs',
+  openApiSpec: '/api-docs.json',
 });
 
 // ============================================
