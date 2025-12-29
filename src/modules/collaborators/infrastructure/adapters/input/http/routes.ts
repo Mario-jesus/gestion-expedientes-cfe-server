@@ -34,6 +34,15 @@ export function createCollaboratorRoutes(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   router.get('/:id', authMiddleware as any, controller.getById.bind(controller) as any);
 
+  // GET /collaborators/:id/documents - Obtener documentos del colaborador
+  // IMPORTANTE: Esta ruta debe ir antes de las rutas con parámetros genéricos
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  router.get(
+    '/:id/documents',
+    authMiddleware as any,
+    controller.getDocuments.bind(controller) as any
+  );
+
   // PUT /collaborators/:id - Actualizar colaborador completo
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   router.put('/:id', authMiddleware as any, controller.update.bind(controller) as any);

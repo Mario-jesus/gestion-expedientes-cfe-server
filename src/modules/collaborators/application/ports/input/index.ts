@@ -5,3 +5,4 @@ export type { IUpdateCollaboratorUseCase } from './IUpdateCollaboratorUseCase';
 export type { IDeleteCollaboratorUseCase } from './IDeleteCollaboratorUseCase';
 export type { IActivateCollaboratorUseCase } from './IActivateCollaboratorUseCase';
 export type { IDeactivateCollaboratorUseCase } from './IDeactivateCollaboratorUseCase';
+export type { IGetDocumentsByCollaboratorIdUseCase } from './IGetDocumentsByCollaboratorIdUseCase';

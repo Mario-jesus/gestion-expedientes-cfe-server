@@ -8,6 +8,8 @@ import { IUpdateCollaboratorUseCase } from '@modules/collaborators/application/p
 import { IDeleteCollaboratorUseCase } from '@modules/collaborators/application/ports/input/IDeleteCollaboratorUseCase';
 import { IActivateCollaboratorUseCase } from '@modules/collaborators/application/ports/input/IActivateCollaboratorUseCase';
 import { IDeactivateCollaboratorUseCase } from '@modules/collaborators/application/ports/input/IDeactivateCollaboratorUseCase';
+import { IGetDocumentsByCollaboratorIdUseCase } from '@modules/collaborators/application/ports/input/IGetDocumentsByCollaboratorIdUseCase';
+import { DocumentKind } from '@modules/catalogs/domain/enums/DocumentKind';
 import { CreateCollaboratorDTO } from '@modules/collaborators/application/dto/CreateCollaboratorDTO';
 import { UpdateCollaboratorDTO } from '@modules/collaborators/application/dto/UpdateCollaboratorDTO';
 import { ListCollaboratorsDTO } from '@modules/collaborators/application/dto/ListCollaboratorsDTO';
@@ -35,6 +37,7 @@ export class CollaboratorController {
     private readonly deleteCollaboratorUseCase: IDeleteCollaboratorUseCase,
     private readonly activateCollaboratorUseCase: IActivateCollaboratorUseCase,
     private readonly deactivateCollaboratorUseCase: IDeactivateCollaboratorUseCase,
+    private readonly getDocumentsByCollaboratorIdUseCase: IGetDocumentsByCollaboratorIdUseCase,
     private readonly logger: ILogger
   ) {}
 
@@ -289,6 +292,55 @@ export class CollaboratorController {
         nombreCompleto: collaborator.nombreCompleto,
         isActive: collaborator.isActive,
         updatedAt: collaborator.updatedAt,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /collaborators/:id/documents
+   * Obtiene todos los documentos de un colaborador específico
+   * Requiere autenticación
+   */
+  async getDocuments(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const collaboratorId = req.params.id as string;
+
+      // Extraer filtros opcionales de query params
+      const filters: {
+        kind?: DocumentKind;
+        isActive?: boolean;
+      } = {};
+
+      if (req.query.kind) {
+        const kindStr = req.query.kind as string;
+        if (Object.values(DocumentKind).includes(kindStr as DocumentKind)) {
+          filters.kind = kindStr as DocumentKind;
+        }
+      }
+
+      if (req.query.isActive !== undefined) {
+        filters.isActive = req.query.isActive === 'true';
+      }
+
+      this.logger.debug('Obteniendo documentos del colaborador', {
+        collaboratorId,
+        filters,
+        ip: req.ip,
+        userAgent: req.get('user-agent'),
+      });
+
+      const documents = await this.getDocumentsByCollaboratorIdUseCase.execute(collaboratorId, filters);
+
+      this.logger.debug('Documentos obtenidos exitosamente', {
+        collaboratorId,
+        total: documents.length,
+      });
+
+      res.status(200).json({
+        data: documents.map((doc) => doc.toPublicJSON()),
+        total: documents.length,
       });
     } catch (error) {
       next(error);

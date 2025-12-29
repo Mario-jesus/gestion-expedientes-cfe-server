@@ -875,6 +875,26 @@ Una vez que el servidor esté corriendo, los endpoints disponibles son:
 - `PATCH /api/users/me` - Actualizar perfil propio (solo name y email)
 - `GET /api/users/me/activity` - Obtener historial de actividad propio (con paginación)
 
+#### Colaboradores (`/api/collaborators`)
+- `POST /api/collaborators` - Crear colaborador
+- `GET /api/collaborators` - Listar colaboradores con filtros (área, adscripción, puesto, tipo de contrato, estado de expediente, búsqueda, paginación)
+- `GET /api/collaborators/:id` - Obtener colaborador por ID
+- `GET /api/collaborators/:id/documents` - Obtener documentos del colaborador (con filtros opcionales: kind, isActive)
+- `PUT /api/collaborators/:id` - Actualizar colaborador completo
+- `PATCH /api/collaborators/:id` - Actualizar colaborador parcial
+- `DELETE /api/collaborators/:id` - Eliminar colaborador (baja lógica)
+- `POST /api/collaborators/:id/activate` - Activar colaborador
+- `POST /api/collaborators/:id/deactivate` - Desactivar colaborador
+
+#### Documentos (`/api/documents`)
+- `POST /api/documents` - Crear/subir documento (con archivo, multipart/form-data)
+- `GET /api/documents` - Listar documentos con filtros (collaboratorId, kind, isActive, paginación)
+- `GET /api/documents/:id` - Obtener documento por ID
+- `GET /api/documents/:id/download` - Obtener URL de descarga/visualización
+- `PUT /api/documents/:id` - Actualizar documento completo (metadatos)
+- `PATCH /api/documents/:id` - Actualizar documento parcial (metadatos)
+- `DELETE /api/documents/:id` - Eliminar documento (baja lógica)
+
 #### Minutas (`/api/minutes`)
 - `POST /api/minutes` - Crear/subir minuta (con archivo, multipart/form-data)
 - `GET /api/minutes` - Listar minutas con filtros (tipo, fechaDesde, fechaHasta, search, paginación)
@@ -883,5 +903,17 @@ Una vez que el servidor esté corriendo, los endpoints disponibles son:
 - `PUT /api/minutes/:id` - Actualizar minuta completa (metadatos)
 - `PATCH /api/minutes/:id` - Actualizar minuta parcial (metadatos)
 - `DELETE /api/minutes/:id` - Eliminar minuta (baja lógica)
+
+#### Catálogos (`/api/catalogs`)
+- **Áreas**: `GET /api/catalogs/areas`, `GET /api/catalogs/areas/:id`, `POST /api/catalogs/areas` (solo admin), `PUT /api/catalogs/areas/:id` (solo admin), `DELETE /api/catalogs/areas/:id` (solo admin), `POST /api/catalogs/areas/:id/activate` (solo admin), `POST /api/catalogs/areas/:id/deactivate` (solo admin)
+- **Adscripciones**: `GET /api/catalogs/adscripciones`, `GET /api/catalogs/adscripciones/:id`, `POST /api/catalogs/adscripciones` (solo admin), `PUT /api/catalogs/adscripciones/:id` (solo admin), `DELETE /api/catalogs/adscripciones/:id` (solo admin), `POST /api/catalogs/adscripciones/:id/activate` (solo admin), `POST /api/catalogs/adscripciones/:id/deactivate` (solo admin)
+- **Puestos**: `GET /api/catalogs/puestos`, `GET /api/catalogs/puestos/:id`, `POST /api/catalogs/puestos` (solo admin), `PUT /api/catalogs/puestos/:id` (solo admin), `DELETE /api/catalogs/puestos/:id` (solo admin), `POST /api/catalogs/puestos/:id/activate` (solo admin), `POST /api/catalogs/puestos/:id/deactivate` (solo admin)
+- **Tipos de Documento**: `GET /api/catalogs/documentTypes`, `GET /api/catalogs/documentTypes/:id`, `POST /api/catalogs/documentTypes` (solo admin), `PUT /api/catalogs/documentTypes/:id` (solo admin), `DELETE /api/catalogs/documentTypes/:id` (solo admin), `POST /api/catalogs/documentTypes/:id/activate` (solo admin), `POST /api/catalogs/documentTypes/:id/deactivate` (solo admin)
+
+#### Auditoría (`/api/audit`)
+- `GET /api/audit` - Listar logs de auditoría con filtros (entity, entityId, userId, action, fechaDesde, fechaHasta, paginación)
+- `GET /api/audit/entity/:entity/:entityId` - Obtener logs de una entidad específica
+- `GET /api/audit/user/:userId` - Obtener logs de un usuario específico
+- `GET /api/audit/:id` - Obtener log por ID
 
 **Nota:** Todos los endpoints requieren autenticación (token JWT en el header `Authorization: Bearer <token>`).

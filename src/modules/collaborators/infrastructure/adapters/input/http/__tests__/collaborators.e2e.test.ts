@@ -21,6 +21,7 @@ import { UserRole } from '@modules/users/domain/enums/UserRole';
 import { Collaborator } from '@modules/collaborators/domain';
 import { TipoContrato } from '@modules/collaborators/domain/enums/TipoContrato';
 import { DocumentKind } from '@modules/catalogs/domain/enums/DocumentKind';
+import { CollaboratorDocument } from '@modules/documents/domain/entities/CollaboratorDocument';
 import { createTestApp } from '@/__tests__/helpers/createTestApp';
 import {
   InMemoryUserRepository,
@@ -923,6 +924,193 @@ describe('Collaborators E2E Tests', () => {
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(404);
+    });
+  });
+
+  describe('GET /api/collaborators/:id/documents', () => {
+    let createdCollaboratorId: string;
+
+    beforeEach(async () => {
+      // Limpiar repositorios antes de crear datos de prueba
+      (collaboratorRepository as any).clear();
+      (documentRepository as any).clear();
+
+      // Crear un colaborador de prueba
+      const collaborator = Collaborator.create({
+        nombre: 'Juan',
+        apellidos: 'Pérez García',
+        rpe: 'RPE001234',
+        areaId: testAreaId,
+        adscripcionId: testAdscripcionId,
+        puestoId: testPuestoId,
+        tipoContrato: TipoContrato.BASE,
+        rfc: 'PEGJ800101ABC',
+        curp: 'PEGJ800101HDFRRN01',
+        imss: '12345678901',
+        isActive: true,
+      });
+      await collaboratorRepository.create(collaborator);
+      createdCollaboratorId = collaborator.id;
+
+      // Crear algunos documentos para el colaborador
+      const document1 = CollaboratorDocument.create({
+        collaboratorId: createdCollaboratorId,
+        kind: DocumentKind.BATERIA,
+        fileName: 'bateria.pdf',
+        fileUrl: '/uploads/documents/bateria.pdf',
+        fileSize: 256000,
+        fileType: 'application/pdf',
+        uploadedBy: adminUser.id,
+      });
+      await documentRepository.create(document1);
+
+      const document2 = CollaboratorDocument.create({
+        collaboratorId: createdCollaboratorId,
+        kind: DocumentKind.HISTORIAL,
+        fileName: 'historial.pdf',
+        fileUrl: '/uploads/documents/historial.pdf',
+        fileSize: 512000,
+        fileType: 'application/pdf',
+        uploadedBy: adminUser.id,
+        periodo: '2024-Q1',
+      });
+      await documentRepository.create(document2);
+
+      const document3 = CollaboratorDocument.create({
+        collaboratorId: createdCollaboratorId,
+        kind: DocumentKind.CONSTANCIA,
+        fileName: 'constancia.pdf',
+        fileUrl: '/uploads/documents/constancia.pdf',
+        fileSize: 128000,
+        fileType: 'application/pdf',
+        uploadedBy: adminUser.id,
+        isActive: false, // Documento inactivo
+      });
+      await documentRepository.create(document3);
+    });
+
+    it('debe obtener todos los documentos de un colaborador', async () => {
+      const response = await request(app)
+        .get(`/api/collaborators/${createdCollaboratorId}/documents`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('data');
+      expect(response.body).toHaveProperty('total');
+      expect(Array.isArray(response.body.data)).toBe(true);
+      expect(response.body.total).toBe(3);
+      expect(response.body.data.length).toBe(3);
+      expect(response.body.data.every((doc: any) => doc.collaboratorId === createdCollaboratorId)).toBe(true);
+    });
+
+    it('debe filtrar documentos por kind', async () => {
+      const response = await request(app)
+        .get(`/api/collaborators/${createdCollaboratorId}/documents?kind=${DocumentKind.BATERIA}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.length).toBe(1);
+      expect(response.body.data[0].kind).toBe(DocumentKind.BATERIA);
+      expect(response.body.total).toBe(1);
+    });
+
+    it('debe filtrar documentos por isActive', async () => {
+      const response = await request(app)
+        .get(`/api/collaborators/${createdCollaboratorId}/documents?isActive=true`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.length).toBe(2);
+      expect(response.body.data.every((doc: any) => doc.isActive === true)).toBe(true);
+      expect(response.body.total).toBe(2);
+    });
+
+    it('debe filtrar documentos por isActive=false', async () => {
+      const response = await request(app)
+        .get(`/api/collaborators/${createdCollaboratorId}/documents?isActive=false`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.length).toBe(1);
+      expect(response.body.data[0].isActive).toBe(false);
+      expect(response.body.total).toBe(1);
+    });
+
+    it('debe combinar filtros kind e isActive', async () => {
+      const response = await request(app)
+        .get(`/api/collaborators/${createdCollaboratorId}/documents?kind=${DocumentKind.CONSTANCIA}&isActive=false`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.length).toBe(1);
+      expect(response.body.data[0].kind).toBe(DocumentKind.CONSTANCIA);
+      expect(response.body.data[0].isActive).toBe(false);
+      expect(response.body.total).toBe(1);
+    });
+
+    it('debe retornar 404 si el colaborador no existe', async () => {
+      const response = await request(app)
+        .get('/api/collaborators/non-existent-id/documents')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(404);
+    });
+
+    it('debe retornar array vacío si el colaborador no tiene documentos', async () => {
+      // Crear un colaborador sin documentos
+      const collaborator = Collaborator.create({
+        nombre: 'María',
+        apellidos: 'González López',
+        rpe: 'RPE005678',
+        areaId: testAreaId,
+        adscripcionId: testAdscripcionId,
+        puestoId: testPuestoId,
+        tipoContrato: TipoContrato.BASE,
+        rfc: 'GOLM800101ABC',
+        curp: 'GOLM800101HDFRRN01',
+        imss: '98765432109',
+        isActive: true,
+      });
+      await collaboratorRepository.create(collaborator);
+
+      const response = await request(app)
+        .get(`/api/collaborators/${collaborator.id}/documents`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data).toEqual([]);
+      expect(response.body.total).toBe(0);
+    });
+
+    it('debe retornar 401 sin token', async () => {
+      const response = await request(app)
+        .get(`/api/collaborators/${createdCollaboratorId}/documents`);
+
+      expect(response.status).toBe(401);
+    });
+
+    it('debe retornar 401 con token inválido', async () => {
+      const response = await request(app)
+        .get(`/api/collaborators/${createdCollaboratorId}/documents`)
+        .set('Authorization', 'Bearer invalid-token');
+
+      expect(response.status).toBe(401);
+    });
+
+    it('debe ordenar documentos por fecha de subida descendente (más recientes primero)', async () => {
+      const response = await request(app)
+        .get(`/api/collaborators/${createdCollaboratorId}/documents`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      const documents = response.body.data;
+      if (documents.length > 1) {
+        for (let i = 0; i < documents.length - 1; i++) {
+          const currentDate = new Date(documents[i].uploadedAt).getTime();
+          const nextDate = new Date(documents[i + 1].uploadedAt).getTime();
+          expect(currentDate).toBeGreaterThanOrEqual(nextDate);
+        }
+      }
     });
   });
 });

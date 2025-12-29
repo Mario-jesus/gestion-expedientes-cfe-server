@@ -11,6 +11,7 @@ import { UpdateCollaboratorUseCase } from '../../application/use-cases/UpdateCol
 import { DeleteCollaboratorUseCase } from '../../application/use-cases/DeleteCollaboratorUseCase';
 import { ActivateCollaboratorUseCase } from '../../application/use-cases/ActivateCollaboratorUseCase';
 import { DeactivateCollaboratorUseCase } from '../../application/use-cases/DeactivateCollaboratorUseCase';
+import { GetDocumentsByCollaboratorIdUseCase } from '../../application/use-cases/GetDocumentsByCollaboratorIdUseCase';
 
 // Input adapters
 import { CollaboratorController } from '../adapters/input/http/CollaboratorController';
@@ -93,6 +94,14 @@ export function registerCollaboratorsModule(container: AwilixContainer): void {
   // DeactivateCollaboratorUseCase - Necesita collaboratorRepository, eventBus y logger
   container.register({
     deactivateCollaboratorUseCase: asClass(DeactivateCollaboratorUseCase, {
+      lifetime: Lifetime.SINGLETON,
+    }),
+  });
+
+  // GetDocumentsByCollaboratorIdUseCase - Necesita getCollaboratorByIdUseCase, documentRepository y logger
+  // Nota: documentRepository viene del módulo documents (debe registrarse después)
+  container.register({
+    getDocumentsByCollaboratorIdUseCase: asClass(GetDocumentsByCollaboratorIdUseCase, {
       lifetime: Lifetime.SINGLETON,
     }),
   });
