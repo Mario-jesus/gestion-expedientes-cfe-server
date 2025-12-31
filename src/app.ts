@@ -102,9 +102,21 @@ app.use('/uploads', express.static(uploadsDir, {
   dotfiles: 'deny', // No servir archivos ocultos (que empiezan con .)
   index: false, // No servir index.html si existe
   // Headers de seguridad
-  setHeaders: (res: Response, _filePath: string) => {
-    // Solo permitir descarga, no ejecución en el navegador
-    res.setHeader('Content-Disposition', 'attachment');
+  setHeaders: (res: Response, filePath: string) => {
+    // Determinar Content-Disposition según el tipo de archivo
+    // Para archivos visualizables (PDFs, imágenes), usar 'inline' para mostrar en el navegador
+    // Para otros archivos, usar 'attachment' para forzar descarga
+    const ext = path.extname(filePath).toLowerCase();
+    const viewableExtensions = ['.pdf', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.bmp'];
+
+    if (viewableExtensions.includes(ext)) {
+      // Permitir visualización en el navegador
+      res.setHeader('Content-Disposition', 'inline');
+    } else {
+      // Forzar descarga para otros tipos de archivo
+      res.setHeader('Content-Disposition', 'attachment');
+    }
+
     // No cachear archivos por seguridad
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     res.setHeader('Pragma', 'no-cache');

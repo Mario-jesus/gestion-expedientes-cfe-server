@@ -10,7 +10,7 @@ import { config } from '@shared/config';
  * Este adaptador:
  * - Guarda archivos en el sistema de archivos local
  * - Organiza archivos por carpeta (documents, minutes)
- * - Genera URLs relativas para acceso
+ * - Genera URLs absolutas para acceso
  * - Maneja errores de I/O y los convierte a excepciones apropiadas
  */
 export class LocalFileStorageService implements IFileStorageService {
@@ -156,21 +156,55 @@ export class LocalFileStorageService implements IFileStorageService {
 
   /**
    * Obtiene la URL completa para acceder al archivo
+   * Retorna una URL absoluta que incluye el host y puerto del servidor
    */
   getFileUrl(filePath: string): string {
-    // Si ya es una URL relativa (empieza con /), retornarla
+    let relativePath: string;
+
+    // Normalizar la ruta a una ruta relativa que empiece con /uploads
     if (filePath.startsWith('/')) {
-      return filePath;
+      // Si ya empieza con /, verificar si incluye /uploads
+      if (filePath.startsWith('/uploads/')) {
+        relativePath = filePath;
+      } else {
+        // Si no incluye /uploads, agregarlo
+        // Ejemplo: /minutes/file.png -> /uploads/minutes/file.png
+        relativePath = `/uploads${filePath}`;
+      }
+    } else if (path.isAbsolute(filePath)) {
+      // Si es una ruta absoluta, convertirla a relativa desde baseDir
+      const relativeFromBase = path.relative(this.baseDir, filePath);
+      relativePath = `/uploads/${relativeFromBase.replace(/\\/g, '/')}`;
+    } else {
+      // Si es una ruta relativa, asegurar que empiece con /uploads
+      relativePath = filePath.startsWith('/uploads/') 
+        ? filePath 
+        : `/uploads/${filePath.startsWith('/') ? filePath.slice(1) : filePath}`;
     }
 
-    // Si es una ruta absoluta, convertirla a relativa
-    if (path.isAbsolute(filePath)) {
-      const relativePath = path.relative(this.baseDir, filePath);
-      return `/${relativePath.replace(/\\/g, '/')}`;
+    // Construir URL absoluta usando la configuración del servidor
+    const baseUrl = config.server.baseUrl;
+    const port = config.server.port;
+
+    // Si baseUrl ya incluye el puerto o es una URL completa, usarla directamente
+    // Si no, agregar el puerto (excepto para puertos estándar 80/443)
+    let fullUrl: string;
+    if (baseUrl.includes('://')) {
+      // Ya es una URL completa (http:// o https://)
+      const url = new URL(baseUrl);
+      // Solo agregar puerto si no es el puerto estándar para el protocolo
+      if (port && port !== 80 && port !== 443) {
+        url.port = port.toString();
+      }
+      fullUrl = `${url.origin}${relativePath}`;
+    } else {
+      // Es solo un hostname, construir URL completa
+      const protocol = port === 443 ? 'https' : 'http';
+      const portPart = (port && port !== 80 && port !== 443) ? `:${port}` : '';
+      fullUrl = `${protocol}://${baseUrl}${portPart}${relativePath}`;
     }
 
-    // Si es una ruta relativa, asegurar que empiece con /
-    return filePath.startsWith('/') ? filePath : `/${filePath}`;
+    return fullUrl;
   }
 
   /**
