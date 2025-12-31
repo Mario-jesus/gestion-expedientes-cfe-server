@@ -68,9 +68,9 @@ export function createUserRoutes(
    *                 example: Juan Pérez
    *               role:
    *                 type: string
-   *                 enum: [admin, regular]
+   *                 enum: [admin, operator]
    *                 description: Rol del usuario
-   *                 example: regular
+   *                 example: operator
    *               isActive:
    *                 type: boolean
    *                 description: Estado activo del usuario (por defecto true)
@@ -135,7 +135,7 @@ export function createUserRoutes(
    *         name: role
    *         schema:
    *           type: string
-   *           enum: [admin, regular]
+   *           enum: [admin, operator]
    *         description: Filtrar por rol
    *       - in: query
    *         name: isActive
@@ -577,7 +577,7 @@ export function createUserRoutes(
    *                 type: string
    *               role:
    *                 type: string
-   *                 enum: [admin, regular]
+   *                 enum: [admin, operator]
    *               isActive:
    *                 type: boolean
    *     responses:
@@ -639,7 +639,7 @@ export function createUserRoutes(
    *                 type: string
    *               role:
    *                 type: string
-   *                 enum: [admin, regular]
+   *                 enum: [admin, operator]
    *               isActive:
    *                 type: boolean
    *     responses:

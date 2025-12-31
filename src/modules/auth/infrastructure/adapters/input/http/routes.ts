@@ -101,7 +101,7 @@ export function createAuthRoutes(
    *                       type: string
    *                     role:
    *                       type: string
-   *                       enum: [admin, regular]
+   *                       enum: [admin, operator]
    *                     isActive:
    *                       type: boolean
    *       401:
@@ -226,7 +226,7 @@ export function createAuthRoutes(
    *                   type: string
    *                 role:
    *                   type: string
-   *                   enum: [admin, regular]
+   *                   enum: [admin, operator]
    *                 isActive:
    *                   type: boolean
    *                 createdAt:
