@@ -145,10 +145,10 @@ describe('DocumentTypes E2E Tests', () => {
     clearContainer();
   }, 30000);
 
-  describe('POST /api/catalogs/documentTypes', () => {
+  describe('POST /api/catalogs/document-types', () => {
     it('debe crear un tipo de documento cuando es admin', async () => {
       const response = await request(app)
-        .post('/api/catalogs/documentTypes')
+        .post('/api/catalogs/document-types')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           nombre: 'Tipo de Documento de Prueba',
@@ -165,7 +165,7 @@ describe('DocumentTypes E2E Tests', () => {
 
     it('debe retornar 403 cuando un usuario regular intenta crear', async () => {
       const response = await request(app)
-        .post('/api/catalogs/documentTypes')
+        .post('/api/catalogs/document-types')
         .set('Authorization', `Bearer ${regularToken}`)
         .send({
           nombre: 'Tipo No Autorizado',
@@ -177,7 +177,7 @@ describe('DocumentTypes E2E Tests', () => {
 
     it('debe retornar error si el nombre ya existe en el kind', async () => {
       await request(app)
-        .post('/api/catalogs/documentTypes')
+        .post('/api/catalogs/document-types')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           nombre: 'Tipo Duplicado',
@@ -185,7 +185,7 @@ describe('DocumentTypes E2E Tests', () => {
         });
 
       const response = await request(app)
-        .post('/api/catalogs/documentTypes')
+        .post('/api/catalogs/document-types')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           nombre: 'Tipo Duplicado',
@@ -198,7 +198,7 @@ describe('DocumentTypes E2E Tests', () => {
 
     it('debe permitir el mismo nombre en diferentes kinds', async () => {
       await request(app)
-        .post('/api/catalogs/documentTypes')
+        .post('/api/catalogs/document-types')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           nombre: 'Mismo Nombre',
@@ -206,7 +206,7 @@ describe('DocumentTypes E2E Tests', () => {
         });
 
       const response = await request(app)
-        .post('/api/catalogs/documentTypes')
+        .post('/api/catalogs/document-types')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           nombre: 'Mismo Nombre',
@@ -219,7 +219,7 @@ describe('DocumentTypes E2E Tests', () => {
     });
   });
 
-  describe('GET /api/catalogs/documentTypes', () => {
+  describe('GET /api/catalogs/document-types', () => {
     beforeEach(async () => {
       const repo = container.resolve<IDocumentTypeRepository>('documentTypeRepository') as InMemoryDocumentTypeRepository;
       repo.clear();
@@ -243,7 +243,7 @@ describe('DocumentTypes E2E Tests', () => {
 
     it('debe listar tipos de documento cuando está autenticado', async () => {
       const response = await request(app)
-        .get('/api/catalogs/documentTypes')
+        .get('/api/catalogs/document-types')
         .set('Authorization', `Bearer ${regularToken}`);
 
       expect(response.status).toBe(200);
@@ -254,7 +254,7 @@ describe('DocumentTypes E2E Tests', () => {
 
     it('debe filtrar tipos de documento por kind', async () => {
       const response = await request(app)
-        .get(`/api/catalogs/documentTypes?kind=${DocumentKind.BATERIA}`)
+        .get(`/api/catalogs/document-types?kind=${DocumentKind.BATERIA}`)
         .set('Authorization', `Bearer ${regularToken}`);
 
       expect(response.status).toBe(200);
@@ -263,7 +263,7 @@ describe('DocumentTypes E2E Tests', () => {
 
     it('debe filtrar tipos de documento por isActive', async () => {
       const response = await request(app)
-        .get('/api/catalogs/documentTypes?isActive=true')
+        .get('/api/catalogs/document-types?isActive=true')
         .set('Authorization', `Bearer ${regularToken}`);
 
       expect(response.status).toBe(200);
@@ -271,7 +271,7 @@ describe('DocumentTypes E2E Tests', () => {
     });
   });
 
-  describe('GET /api/catalogs/documentTypes/:id', () => {
+  describe('GET /api/catalogs/document-types/:id', () => {
     let testDocumentType: DocumentType;
 
     beforeEach(async () => {
@@ -289,7 +289,7 @@ describe('DocumentTypes E2E Tests', () => {
 
     it('debe obtener un tipo de documento por ID cuando está autenticado', async () => {
       const response = await request(app)
-        .get(`/api/catalogs/documentTypes/${testDocumentType.id}`)
+        .get(`/api/catalogs/document-types/${testDocumentType.id}`)
         .set('Authorization', `Bearer ${regularToken}`);
 
       expect(response.status).toBe(200);
@@ -299,7 +299,7 @@ describe('DocumentTypes E2E Tests', () => {
     });
   });
 
-  describe('PUT /api/catalogs/documentTypes/:id', () => {
+  describe('PUT /api/catalogs/document-types/:id', () => {
     let testDocumentType: DocumentType;
 
     beforeEach(async () => {
@@ -317,7 +317,7 @@ describe('DocumentTypes E2E Tests', () => {
 
     it('debe actualizar un tipo de documento cuando es admin', async () => {
       const response = await request(app)
-        .put(`/api/catalogs/documentTypes/${testDocumentType.id}`)
+        .put(`/api/catalogs/document-types/${testDocumentType.id}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           nombre: 'Tipo Actualizado',
@@ -331,7 +331,7 @@ describe('DocumentTypes E2E Tests', () => {
     });
   });
 
-  describe('DELETE /api/catalogs/documentTypes/:id', () => {
+  describe('DELETE /api/catalogs/document-types/:id', () => {
     let testDocumentType: DocumentType;
 
     beforeEach(async () => {
@@ -349,7 +349,7 @@ describe('DocumentTypes E2E Tests', () => {
 
     it('debe eliminar un tipo de documento (baja lógica) cuando es admin', async () => {
       const response = await request(app)
-        .delete(`/api/catalogs/documentTypes/${testDocumentType.id}`)
+        .delete(`/api/catalogs/document-types/${testDocumentType.id}`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(200);
@@ -361,7 +361,7 @@ describe('DocumentTypes E2E Tests', () => {
     });
   });
 
-  describe('POST /api/catalogs/documentTypes/:id/activate', () => {
+  describe('POST /api/catalogs/document-types/:id/activate', () => {
     let testDocumentType: DocumentType;
 
     beforeEach(async () => {
@@ -379,7 +379,7 @@ describe('DocumentTypes E2E Tests', () => {
 
     it('debe activar un tipo de documento cuando es admin', async () => {
       const response = await request(app)
-        .post(`/api/catalogs/documentTypes/${testDocumentType.id}/activate`)
+        .post(`/api/catalogs/document-types/${testDocumentType.id}/activate`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(200);
@@ -388,7 +388,7 @@ describe('DocumentTypes E2E Tests', () => {
     });
   });
 
-  describe('POST /api/catalogs/documentTypes/:id/deactivate', () => {
+  describe('POST /api/catalogs/document-types/:id/deactivate', () => {
     let testDocumentType: DocumentType;
 
     beforeEach(async () => {
@@ -406,7 +406,7 @@ describe('DocumentTypes E2E Tests', () => {
 
     it('debe desactivar un tipo de documento cuando es admin', async () => {
       const response = await request(app)
-        .post(`/api/catalogs/documentTypes/${testDocumentType.id}/deactivate`)
+        .post(`/api/catalogs/document-types/${testDocumentType.id}/deactivate`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(200);

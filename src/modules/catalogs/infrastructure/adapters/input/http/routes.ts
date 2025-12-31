@@ -971,7 +971,7 @@ export function createCatalogRoutes(
 
   /**
    * @swagger
-   * /api/catalogs/documentTypes:
+   * /api/catalogs/document-types:
    *   get:
    *     summary: Listar tipos de documento
    *     description: Lista tipos de documento con filtros y paginación. Todos los usuarios autenticados pueden listar tipos de documento.
@@ -1064,7 +1064,7 @@ export function createCatalogRoutes(
    *         description: No autorizado (solo admin)
    *       409:
    *         description: Tipo de documento con ese nombre ya existe en el kind
-   * /api/catalogs/documentTypes/{id}:
+   * /api/catalogs/document-types/{id}:
    *   get:
    *     summary: Obtener tipo de documento por ID
    *     tags: [Catálogos - Tipos de Documento]
@@ -1134,7 +1134,7 @@ export function createCatalogRoutes(
    *         description: No autorizado (solo admin)
    *       404:
    *         description: Tipo de documento no encontrado
-   * /api/catalogs/documentTypes/{id}/activate:
+   * /api/catalogs/document-types/{id}/activate:
    *   post:
    *     summary: Activar tipo de documento
    *     description: Solo administradores pueden activar tipos de documento.
@@ -1154,7 +1154,7 @@ export function createCatalogRoutes(
    *         description: No autorizado (solo admin)
    *       404:
    *         description: Tipo de documento no encontrado
-   * /api/catalogs/documentTypes/{id}/deactivate:
+   * /api/catalogs/document-types/{id}/deactivate:
    *   post:
    *     summary: Desactivar tipo de documento
    *     description: Solo administradores pueden desactivar tipos de documento.
@@ -1175,33 +1175,33 @@ export function createCatalogRoutes(
    *       404:
    *         description: Tipo de documento no encontrado
    */
-  // GET /documentTypes - Listar tipos de documento (todos los usuarios autenticados)
+  // GET /document-types - Listar tipos de documento (todos los usuarios autenticados)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  router.get('/documentTypes', authMiddleware as any, documentTypeController.list.bind(documentTypeController) as any);
+  router.get('/document-types', authMiddleware as any, documentTypeController.list.bind(documentTypeController) as any);
 
-  // GET /documentTypes/:id - Obtener tipo de documento por ID (todos los usuarios autenticados)
+  // GET /document-types/:id - Obtener tipo de documento por ID (todos los usuarios autenticados)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  router.get('/documentTypes/:id', authMiddleware as any, documentTypeController.getById.bind(documentTypeController) as any);
+  router.get('/document-types/:id', authMiddleware as any, documentTypeController.getById.bind(documentTypeController) as any);
 
-  // POST /documentTypes - Crear tipo de documento (solo admin)
+  // POST /document-types - Crear tipo de documento (solo admin)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  router.post('/documentTypes', authMiddleware as any, adminOnly as any, documentTypeController.create.bind(documentTypeController) as any);
+  router.post('/document-types', authMiddleware as any, adminOnly as any, documentTypeController.create.bind(documentTypeController) as any);
 
-  // PUT /documentTypes/:id - Actualizar tipo de documento (solo admin)
+  // PUT /document-types/:id - Actualizar tipo de documento (solo admin)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  router.put('/documentTypes/:id', authMiddleware as any, adminOnly as any, documentTypeController.update.bind(documentTypeController) as any);
+  router.put('/document-types/:id', authMiddleware as any, adminOnly as any, documentTypeController.update.bind(documentTypeController) as any);
 
-  // DELETE /documentTypes/:id - Eliminar tipo de documento (solo admin)
+  // DELETE /document-types/:id - Eliminar tipo de documento (solo admin)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  router.delete('/documentTypes/:id', authMiddleware as any, adminOnly as any, documentTypeController.delete.bind(documentTypeController) as any);
+  router.delete('/document-types/:id', authMiddleware as any, adminOnly as any, documentTypeController.delete.bind(documentTypeController) as any);
 
-  // POST /documentTypes/:id/activate - Activar tipo de documento (solo admin)
+  // POST /document-types/:id/activate - Activar tipo de documento (solo admin)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  router.post('/documentTypes/:id/activate', authMiddleware as any, adminOnly as any, documentTypeController.activate.bind(documentTypeController) as any);
+  router.post('/document-types/:id/activate', authMiddleware as any, adminOnly as any, documentTypeController.activate.bind(documentTypeController) as any);
 
-  // POST /documentTypes/:id/deactivate - Desactivar tipo de documento (solo admin)
+  // POST /document-types/:id/deactivate - Desactivar tipo de documento (solo admin)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  router.post('/documentTypes/:id/deactivate', authMiddleware as any, adminOnly as any, documentTypeController.deactivate.bind(documentTypeController) as any);
+  router.post('/document-types/:id/deactivate', authMiddleware as any, adminOnly as any, documentTypeController.deactivate.bind(documentTypeController) as any);
 
   return router;
 }

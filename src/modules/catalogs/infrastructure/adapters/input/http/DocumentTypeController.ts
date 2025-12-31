@@ -36,7 +36,7 @@ export class DocumentTypeController {
   }
 
   /**
-   * POST /documentTypes
+   * POST /document-types
    * Crea un nuevo tipo de documento
    * Requiere autenticación (solo admin)
    */
@@ -68,7 +68,7 @@ export class DocumentTypeController {
   }
 
   /**
-   * GET /documentTypes/:id
+   * GET /document-types/:id
    * Obtiene un tipo de documento por su ID
    * Requiere autenticación
    */
@@ -85,7 +85,7 @@ export class DocumentTypeController {
   }
 
   /**
-   * GET /documentTypes
+   * GET /document-types
    * Lista tipos de documento con filtros y paginación
    * Requiere autenticación
    */
@@ -135,7 +135,7 @@ export class DocumentTypeController {
   }
 
   /**
-   * PUT /documentTypes/:id
+   * PUT /document-types/:id
    * Actualiza un tipo de documento
    * Requiere autenticación (solo admin)
    */
@@ -154,7 +154,7 @@ export class DocumentTypeController {
   }
 
   /**
-   * DELETE /documentTypes/:id
+   * DELETE /document-types/:id
    * Elimina un tipo de documento (baja lógica)
    * Requiere autenticación (solo admin)
    */
@@ -186,7 +186,7 @@ export class DocumentTypeController {
   }
 
   /**
-   * POST /documentTypes/:id/activate
+   * POST /document-types/:id/activate
    * Activa un tipo de documento
    * Requiere autenticación (solo admin)
    */
@@ -210,7 +210,7 @@ export class DocumentTypeController {
   }
 
   /**
-   * POST /documentTypes/:id/deactivate
+   * POST /document-types/:id/deactivate
    * Desactiva un tipo de documento (baja lógica)
    * Requiere autenticación (solo admin)
    */
