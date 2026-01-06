@@ -32,7 +32,7 @@ const PuestoSchema = new Schema<PuestoDocument>(
       type: String,
       required: false,
       trim: true,
-      maxlength: 500,
+      maxlength: 1000,
       default: undefined,
     },
     isActive: {

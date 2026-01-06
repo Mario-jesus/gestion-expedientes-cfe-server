@@ -274,9 +274,19 @@ Antes de ejecutar el servidor por primera vez, sigue estos pasos:
    npm run migrate
    ```
 
-4. **Crear usuario administrador inicial:**
+4. **Crear datos iniciales (usuario y catálogos):**
    ```bash
    npm run seed
+   ```
+
+   Este comando ejecuta ambos seeds:
+   - Crea el usuario administrador inicial (si no existe)
+   - Crea los catálogos (áreas y puestos) si no existen
+
+   También puedes ejecutarlos por separado:
+   ```bash
+   npm run seed:user      # Solo usuario
+   npm run seed:catalogs  # Solo catálogos
    ```
 
 ### Modo Desarrollo
@@ -326,7 +336,9 @@ npm start
 | `npm run migrate:create` | Crea un nuevo archivo de migración |
 | `npm run migrate:list` | Lista todas las migraciones y su estado |
 | `npm run migrate:prune` | Elimina migraciones antiguas del historial |
-| `npm run seed` | Crea un usuario administrador inicial si no existe ningún usuario |
+| `npm run seed` | Crea usuario administrador inicial y catálogos (áreas y puestos) |
+| `npm run seed:user` | Crea solo el usuario administrador inicial si no existe ningún usuario |
+| `npm run seed:catalogs` | Crea solo los catálogos (áreas y puestos) si no existen |
 | `npm test` | Ejecuta todos los tests (unitarios, integración y E2E) |
 | `npm run test:watch` | Ejecuta tests en modo watch (se re-ejecutan al cambiar archivos) |
 | `npm run test:coverage` | Ejecuta tests y genera reporte de cobertura |
@@ -431,12 +443,30 @@ export const down: Migration = async ({ db }) => {
 
 **Nota:** Las migraciones se ejecutan contra la base de datos configurada en `.env` (`MONGODB_HOST` y `DATABASE_NAME`).
 
-## 👤 Crear Usuario Administrador Inicial
+## 🌱 Scripts de Seed (Datos Iniciales)
 
-Para crear un usuario administrador inicial en la base de datos, usa el script de seed:
+El proyecto incluye scripts para poblar la base de datos con datos iniciales necesarios para el funcionamiento del sistema.
+
+### Seed Completo
+
+Para crear todos los datos iniciales (usuario y catálogos) de una vez:
 
 ```bash
 npm run seed
+```
+
+Este comando ejecuta en secuencia:
+1. `seed:user` - Crea el usuario administrador inicial
+2. `seed:catalogs` - Crea las áreas y puestos del catálogo
+
+---
+
+## 👤 Crear Usuario Administrador Inicial
+
+Para crear solo el usuario administrador inicial:
+
+```bash
+npm run seed:user
 ```
 
 Este script:
@@ -450,14 +480,14 @@ Puedes personalizar los datos del usuario inicial usando variables de entorno:
 
 ```bash
 # Usar valores por defecto
-npm run seed
+npm run seed:user
 
 # O personalizar los valores
 SEED_USERNAME=admin \
 SEED_PASSWORD=miPasswordSegura123 \
 SEED_EMAIL=admin@cfe.com \
 SEED_NAME="Administrador Principal" \
-npm run seed
+npm run seed:user
 ```
 
 **Valores por defecto:**
@@ -471,6 +501,63 @@ npm run seed
 - Cambia la contraseña después del primer login
 - Este script solo crea un usuario si NO existe ningún usuario en la base de datos
 - Asegúrate de tener MongoDB corriendo y configurado correctamente en `.env`
+
+---
+
+## 📋 Crear Catálogos (Áreas y Puestos)
+
+Para crear solo los catálogos (áreas y puestos):
+
+```bash
+npm run seed:catalogs
+```
+
+Este script:
+- Crea 9 áreas organizacionales (Distribución, Planeación, Medición, etc.)
+- Crea 12 puestos técnicos y operativos (Liniero Comercial, Técnico de Distribución, etc.)
+- Verifica si cada registro ya existe antes de crearlo (idempotente)
+- Todos los registros se crean como activos (`isActive: true`)
+
+### Configuración del seed de catálogos
+
+Puedes saltar la creación de áreas o puestos usando variables de entorno:
+
+```bash
+# Saltar creación de áreas
+SEED_CATALOGS_SKIP_AREAS=true npm run seed:catalogs
+
+# Saltar creación de puestos
+SEED_CATALOGS_SKIP_PUESTOS=true npm run seed:catalogs
+```
+
+**Variables de entorno opcionales:**
+- `SEED_CATALOGS_SKIP_AREAS`: Si es `true`, no crea áreas (default: `false`)
+- `SEED_CATALOGS_SKIP_PUESTOS`: Si es `true`, no crea puestos (default: `false`)
+
+**Áreas creadas:**
+- Distribución
+- Planeación
+- Medición
+- Gestión comercial
+- Capacitación
+- Administración personal
+- Administración general
+- Servicios generales
+- TI
+
+**Puestos creados:**
+- Liniero Comercial
+- Liniero Encargado LV RGD
+- Liniero LV RGD
+- Ayudante Liniero
+- Verificador Calibrador I
+- Sobrestante RGD
+- Técnico de Distribución
+- Técnico de Control
+- Técnico de Comunicaciones
+- Técnico de Protecciones
+- Técnico de Subestaciones
+- Técnico de Zona
 
 ## 🧪 Testing
 
@@ -830,7 +917,7 @@ Si los tests fallan:
    # 3. Si usas MongoDB, ejecutar migraciones
    npm run migrate:all
 
-   # 4. Crear usuario inicial
+   # 4. Crear datos iniciales (usuario y catálogos)
    npm run seed
    ```
 

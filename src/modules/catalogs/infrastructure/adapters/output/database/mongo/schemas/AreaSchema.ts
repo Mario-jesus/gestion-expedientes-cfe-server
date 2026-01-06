@@ -32,7 +32,7 @@ const AreaSchema = new Schema<AreaDocument>(
       type: String,
       required: false,
       trim: true,
-      maxlength: 500,
+      maxlength: 1000,
       default: undefined,
     },
     isActive: {

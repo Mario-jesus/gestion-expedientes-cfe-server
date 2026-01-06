@@ -6,6 +6,7 @@ import { DuplicateDocumentTypeError } from '@modules/catalogs/domain/exceptions/
 import { DocumentKind } from '@modules/catalogs/domain/enums/DocumentKind';
 import { DocumentTypeModel, DocumentTypeDocument } from '../schemas/DocumentTypeSchema';
 import { ILogger } from '@shared/domain';
+import { CollaboratorDocumentModel } from '@modules/documents/infrastructure/adapters/output/database/mongo/schemas/CollaboratorDocumentSchema';
 
 /**
  * Implementación del repositorio de tipos de documento usando MongoDB/Mongoose
@@ -295,16 +296,14 @@ export class DocumentTypeRepository implements IDocumentTypeRepository {
 
   async countDocumentsByDocumentTypeId(
     documentTypeId: string,
-    _isActive?: boolean
+    isActive?: boolean
   ): Promise<number> {
     try {
-      // TODO: Implementar cuando se cree el módulo de documentos
-      // Por ahora retornamos 0 ya que el módulo de documentos aún no existe
-      // El parámetro isActive se usará cuando se implemente el módulo de documentos
-      this.logger.debug('countDocumentsByDocumentTypeId: módulo de documentos no implementado aún', {
-        documentTypeId,
-      });
-      return 0;
+      const query: any = { documentTypeId };
+      if (isActive !== undefined) {
+        query.isActive = isActive;
+      }
+      return await CollaboratorDocumentModel.countDocuments(query).exec();
     } catch (error: any) {
       this.logger.error('Error al contar documentos por tipo de documento', error);
       return 0;
