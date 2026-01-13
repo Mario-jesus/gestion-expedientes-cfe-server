@@ -148,3 +148,7 @@ uploads/documents/*
 !uploads/minutes/
 uploads/minutes/*
 !uploads/minutes/.gitkeep
+
+# PM2 process files
+.pm2
+*.pid

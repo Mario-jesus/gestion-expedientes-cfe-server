@@ -321,6 +321,28 @@ Esto generará los archivos compilados en la carpeta `dist/`.
 npm start
 ```
 
+### Ejecución con PM2 (Windows)
+
+Para ejecutar el servidor con PM2 en Windows y configurar el inicio automático en cada nueva sesión, consulta la guía completa:
+
+📖 **[Ver guía de configuración de PM2](./PM2-SETUP.md)**
+
+**Comandos rápidos:**
+
+```bash
+# Compilar el proyecto
+npm run build
+
+# Iniciar con PM2
+npm run pm2:start
+
+# Guardar configuración
+npm run pm2:save
+
+# Configurar inicio automático
+npm run pm2:startup
+```
+
 ## 📝 Scripts Disponibles
 
 | Script | Descripción |
@@ -343,6 +365,17 @@ npm start
 | `npm run test:watch` | Ejecuta tests en modo watch (se re-ejecutan al cambiar archivos) |
 | `npm run test:coverage` | Ejecuta tests y genera reporte de cobertura |
 | `npm run test:e2e` | Ejecuta solo los tests E2E |
+| `npm run pm2:start` | Inicia la aplicación con PM2 |
+| `npm run pm2:stop` | Detiene la aplicación en PM2 |
+| `npm run pm2:restart` | Reinicia la aplicación en PM2 |
+| `npm run pm2:delete` | Elimina la aplicación de PM2 |
+| `npm run pm2:logs` | Muestra logs en tiempo real de PM2 |
+| `npm run pm2:monit` | Abre el monitor interactivo de PM2 |
+| `npm run pm2:status` | Muestra el estado de las aplicaciones en PM2 |
+| `npm run pm2:save` | Guarda la configuración actual de PM2 |
+| `npm run pm2:startup` | Configura el inicio automático de PM2 en Windows |
+
+**Nota:** Para más información sobre PM2, consulta [PM2-SETUP.md](./PM2-SETUP.md)
 
 ## 🧪 Verificar que funciona
 
