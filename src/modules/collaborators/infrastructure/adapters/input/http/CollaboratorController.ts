@@ -59,6 +59,16 @@ export class CollaboratorController {
    */
   async create(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
+      // Validar tipoContrato si está presente
+      const validContractTypes = Object.values(TipoContrato);
+      if (req.body.tipoContrato && !validContractTypes.includes(req.body.tipoContrato)) {
+        res.status(400).json({
+          error: `tipoContrato debe ser uno de: ${validContractTypes.join(', ')}`,
+          code: 'VALIDATION_ERROR',
+        });
+        return;
+      }
+
       const dto: CreateCollaboratorDTO = req.body;
       const createdBy = this.getCurrentUserId(req);
 
@@ -183,6 +193,16 @@ export class CollaboratorController {
    */
   async update(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
+      // Validar tipoContrato si está presente
+      const validContractTypes = Object.values(TipoContrato);
+      if (req.body.tipoContrato && !validContractTypes.includes(req.body.tipoContrato)) {
+        res.status(400).json({
+          error: `tipoContrato debe ser uno de: ${validContractTypes.join(', ')}`,
+          code: 'VALIDATION_ERROR',
+        });
+        return;
+      }
+
       const id = req.params.id as string;
       const dto: UpdateCollaboratorDTO = req.body;
       const performedBy = this.getCurrentUserId(req);
@@ -206,6 +226,16 @@ export class CollaboratorController {
     next: NextFunction
   ): Promise<void> {
     try {
+      // Validar tipoContrato si está presente
+      const validContractTypes = Object.values(TipoContrato);
+      if (req.body.tipoContrato && !validContractTypes.includes(req.body.tipoContrato)) {
+        res.status(400).json({
+          error: `tipoContrato debe ser uno de: ${validContractTypes.join(', ')}`,
+          code: 'VALIDATION_ERROR',
+        });
+        return;
+      }
+
       const id = req.params.id as string;
       const dto: UpdateCollaboratorDTO = req.body;
       const performedBy = this.getCurrentUserId(req);

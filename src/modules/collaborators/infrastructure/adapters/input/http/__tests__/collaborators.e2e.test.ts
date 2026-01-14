@@ -196,7 +196,7 @@ describe('Collaborators E2E Tests', () => {
           areaId: testAreaId,
           adscripcionId: testAdscripcionId,
           puestoId: testPuestoId,
-          tipoContrato: TipoContrato.BASE,
+          tipoContrato: TipoContrato.CONFIANZA,
           rfc: 'PEGJ800101ABC',
           curp: 'PEGJ800101HDFRRN01',
           imss: '12345678901',
@@ -211,7 +211,7 @@ describe('Collaborators E2E Tests', () => {
       expect(response.body.areaId).toBe(testAreaId);
       expect(response.body.adscripcionId).toBe(testAdscripcionId);
       expect(response.body.puestoId).toBe(testPuestoId);
-      expect(response.body.tipoContrato).toBe(TipoContrato.BASE);
+      expect(response.body.tipoContrato).toBe(TipoContrato.CONFIANZA);
       expect(response.body.isActive).toBe(true);
     });
 
@@ -241,7 +241,7 @@ describe('Collaborators E2E Tests', () => {
           areaId: testAreaId,
           adscripcionId: testAdscripcionId,
           puestoId: testPuestoId,
-          tipoContrato: TipoContrato.BASE,
+          tipoContrato: TipoContrato.CONFIANZA,
           rfc: 'PEGJ800101ABC',
           curp: 'PEGJ800101HDFRRN01',
           imss: '12345678901',
@@ -286,7 +286,7 @@ describe('Collaborators E2E Tests', () => {
           areaId: testAreaId,
           adscripcionId: testAdscripcionId,
           puestoId: testPuestoId,
-          tipoContrato: TipoContrato.BASE,
+          tipoContrato: TipoContrato.CONFIANZA,
           rfc: 'PEGJ800101ABC',
           curp: 'PEGJ800101HDFRRN01',
           imss: '12345678901',
@@ -303,7 +303,7 @@ describe('Collaborators E2E Tests', () => {
           areaId: testAreaId,
           adscripcionId: testAdscripcionId,
           puestoId: testPuestoId,
-          tipoContrato: TipoContrato.BASE,
+          tipoContrato: TipoContrato.CONFIANZA,
           rfc: 'GOLP800101ABC',
           curp: 'GOLP800101HDFRRN02',
           imss: '12345678902',
@@ -322,7 +322,7 @@ describe('Collaborators E2E Tests', () => {
         areaId: testAreaId,
         adscripcionId: testAdscripcionId,
         puestoId: testPuestoId,
-        tipoContrato: TipoContrato.BASE,
+        tipoContrato: TipoContrato.CONFIANZA,
         rfc: 'PEGJ800101ABC',
         curp: 'PEGJ800101HDFRRN01',
         imss: '12345678901',
@@ -348,7 +348,7 @@ describe('Collaborators E2E Tests', () => {
         areaId: testAreaId,
         adscripcionId: testAdscripcionId,
         puestoId: testPuestoId,
-        tipoContrato: TipoContrato.BASE,
+        tipoContrato: TipoContrato.CONFIANZA,
         rfc: 'PEGJ800101ABC',
         curp: 'PEGJ800101HDFRRN01',
         imss: '12345678901',
@@ -392,7 +392,7 @@ describe('Collaborators E2E Tests', () => {
         areaId: testAreaId,
         adscripcionId: testAdscripcionId,
         puestoId: testPuestoId,
-        tipoContrato: TipoContrato.BASE,
+        tipoContrato: TipoContrato.CONFIANZA,
         rfc: 'PEGJ800101ABC',
         curp: 'PEGJ800101HDFRRN01',
         imss: '12345678901',
@@ -407,7 +407,7 @@ describe('Collaborators E2E Tests', () => {
         areaId: 'area-test-2', // Diferente área
         adscripcionId: testAdscripcionId,
         puestoId: testPuestoId,
-        tipoContrato: TipoContrato.BASE,
+        tipoContrato: TipoContrato.CONFIANZA,
         rfc: 'GOLM800101ABC',
         curp: 'GOLM800101HDFRRN02',
         imss: '12345678902',
@@ -434,7 +434,7 @@ describe('Collaborators E2E Tests', () => {
         areaId: testAreaId,
         adscripcionId: testAdscripcionId,
         puestoId: testPuestoId,
-        tipoContrato: TipoContrato.BASE,
+        tipoContrato: TipoContrato.CONFIANZA,
         rfc: 'PEGJ800101ABC',
         curp: 'PEGJ800101HDFRRN01',
         imss: '12345678901',
@@ -443,12 +443,12 @@ describe('Collaborators E2E Tests', () => {
       await collaboratorRepository.create(collaborator1);
 
       const response = await request(app)
-        .get(`/api/collaborators?tipoContrato=${TipoContrato.BASE}`)
+        .get(`/api/collaborators?tipoContrato=${TipoContrato.CONFIANZA}`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(200);
       response.body.data.forEach((collaborator: any) => {
-        expect(collaborator.tipoContrato).toBe(TipoContrato.BASE);
+        expect(collaborator.tipoContrato).toBe(TipoContrato.CONFIANZA);
       });
     });
 
@@ -460,7 +460,7 @@ describe('Collaborators E2E Tests', () => {
         areaId: testAreaId,
         adscripcionId: testAdscripcionId,
         puestoId: testPuestoId,
-        tipoContrato: TipoContrato.BASE,
+        tipoContrato: TipoContrato.CONFIANZA,
         rfc: 'PEGJ800101ABC',
         curp: 'PEGJ800101HDFRRN01',
         imss: '12345678901',
@@ -475,7 +475,7 @@ describe('Collaborators E2E Tests', () => {
         areaId: testAreaId,
         adscripcionId: testAdscripcionId,
         puestoId: testPuestoId,
-        tipoContrato: TipoContrato.BASE,
+        tipoContrato: TipoContrato.CONFIANZA,
         rfc: 'GOLM800101ABC',
         curp: 'GOLM800101HDFRRN02',
         imss: '12345678902',
@@ -501,7 +501,7 @@ describe('Collaborators E2E Tests', () => {
         areaId: testAreaId,
         adscripcionId: testAdscripcionId,
         puestoId: testPuestoId,
-        tipoContrato: TipoContrato.BASE,
+        tipoContrato: TipoContrato.CONFIANZA,
         rfc: 'PEGJ800101ABC',
         curp: 'PEGJ800101HDFRRN01',
         imss: '12345678901',
@@ -532,7 +532,7 @@ describe('Collaborators E2E Tests', () => {
           areaId: testAreaId,
           adscripcionId: testAdscripcionId,
           puestoId: testPuestoId,
-          tipoContrato: TipoContrato.BASE,
+          tipoContrato: TipoContrato.CONFIANZA,
           rfc: `RFC${i}800101ABC`,
           curp: curp,
           imss: `1234567890${i}`,
@@ -561,7 +561,7 @@ describe('Collaborators E2E Tests', () => {
         areaId: testAreaId,
         adscripcionId: testAdscripcionId,
         puestoId: testPuestoId,
-        tipoContrato: TipoContrato.BASE,
+        tipoContrato: TipoContrato.CONFIANZA,
         rfc: 'PEGJ800101ABC',
         curp: 'PEGJ800101HDFRRN01',
         imss: '12345678901',
@@ -577,7 +577,7 @@ describe('Collaborators E2E Tests', () => {
         areaId: testAreaId,
         adscripcionId: testAdscripcionId,
         puestoId: testPuestoId,
-        tipoContrato: TipoContrato.BASE,
+        tipoContrato: TipoContrato.CONFIANZA,
         rfc: 'GOLM800101ABC',
         curp: 'GOLM800101HDFRRN02',
         imss: '12345678902',
@@ -642,7 +642,7 @@ describe('Collaborators E2E Tests', () => {
         areaId: testAreaId,
         adscripcionId: testAdscripcionId,
         puestoId: testPuestoId,
-        tipoContrato: TipoContrato.BASE,
+        tipoContrato: TipoContrato.CONFIANZA,
         rfc: 'PEGJ800101ABC',
         curp: 'PEGJ800101HDFRRN01',
         imss: '12345678901',
@@ -695,7 +695,7 @@ describe('Collaborators E2E Tests', () => {
         areaId: testAreaId,
         adscripcionId: testAdscripcionId,
         puestoId: testPuestoId,
-        tipoContrato: TipoContrato.BASE,
+        tipoContrato: TipoContrato.CONFIANZA,
         rfc: 'PEGJ800101ABC',
         curp: 'PEGJ800101HDFRRN01',
         imss: '12345678901',
@@ -739,7 +739,7 @@ describe('Collaborators E2E Tests', () => {
           areaId: testAreaId,
           adscripcionId: testAdscripcionId,
           puestoId: testPuestoId,
-          tipoContrato: TipoContrato.BASE,
+          tipoContrato: TipoContrato.CONFIANZA,
           rfc: 'PEGJ800101ABC',
           curp: 'PEGJ800101HDFRRN01',
           imss: '12345678901',
@@ -764,7 +764,7 @@ describe('Collaborators E2E Tests', () => {
         areaId: testAreaId,
         adscripcionId: testAdscripcionId,
         puestoId: testPuestoId,
-        tipoContrato: TipoContrato.BASE,
+        tipoContrato: TipoContrato.CONFIANZA,
         rfc: 'PEGJ800101ABC',
         curp: 'PEGJ800101HDFRRN01',
         imss: '12345678901',
@@ -803,7 +803,7 @@ describe('Collaborators E2E Tests', () => {
         areaId: testAreaId,
         adscripcionId: testAdscripcionId,
         puestoId: testPuestoId,
-        tipoContrato: TipoContrato.BASE,
+        tipoContrato: TipoContrato.CONFIANZA,
         rfc: 'PEGJ800101ABC',
         curp: 'PEGJ800101HDFRRN01',
         imss: '12345678901',
@@ -854,7 +854,7 @@ describe('Collaborators E2E Tests', () => {
         areaId: testAreaId,
         adscripcionId: testAdscripcionId,
         puestoId: testPuestoId,
-        tipoContrato: TipoContrato.BASE,
+        tipoContrato: TipoContrato.CONFIANZA,
         rfc: 'PEGJ800101ABC',
         curp: 'PEGJ800101HDFRRN01',
         imss: '12345678901',
@@ -898,7 +898,7 @@ describe('Collaborators E2E Tests', () => {
         areaId: testAreaId,
         adscripcionId: testAdscripcionId,
         puestoId: testPuestoId,
-        tipoContrato: TipoContrato.BASE,
+        tipoContrato: TipoContrato.CONFIANZA,
         rfc: 'PEGJ800101ABC',
         curp: 'PEGJ800101HDFRRN01',
         imss: '12345678901',
@@ -943,7 +943,7 @@ describe('Collaborators E2E Tests', () => {
         areaId: testAreaId,
         adscripcionId: testAdscripcionId,
         puestoId: testPuestoId,
-        tipoContrato: TipoContrato.BASE,
+        tipoContrato: TipoContrato.CONFIANZA,
         rfc: 'PEGJ800101ABC',
         curp: 'PEGJ800101HDFRRN01',
         imss: '12345678901',
@@ -1065,7 +1065,7 @@ describe('Collaborators E2E Tests', () => {
         areaId: testAreaId,
         adscripcionId: testAdscripcionId,
         puestoId: testPuestoId,
-        tipoContrato: TipoContrato.BASE,
+        tipoContrato: TipoContrato.CONFIANZA,
         rfc: 'GOLM800101ABC',
         curp: 'GOLM800101HDFRRN01',
         imss: '98765432109',

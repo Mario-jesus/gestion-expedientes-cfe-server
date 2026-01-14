@@ -1,7 +1,7 @@
 /**
- * Script de seed para crear datos iniciales de catálogos (Áreas y Puestos)
+ * Script de seed para crear datos iniciales de catálogos (Áreas, Adscripciones y Puestos)
  * 
- * Este script crea áreas y puestos por defecto si no existen en la base de datos.
+ * Este script crea áreas, adscripciones y puestos por defecto si no existen en la base de datos.
  * 
  * Uso:
  *   npm run seed:catalogs
@@ -9,6 +9,7 @@
  * 
  * Variables de entorno opcionales:
  *   SEED_CATALOGS_SKIP_AREAS=false (default: false) - Saltar creación de áreas
+ *   SEED_CATALOGS_SKIP_ADSCRIPCIONES=false (default: false) - Saltar creación de adscripciones
  *   SEED_CATALOGS_SKIP_PUESTOS=false (default: false) - Saltar creación de puestos
  */
 
@@ -16,9 +17,11 @@ import dotenv from 'dotenv';
 import { container } from '../shared/infrastructure';
 import { registerCatalogsModule } from '../modules/catalogs/infrastructure/container';
 import { IAreaRepository } from '../modules/catalogs/domain/ports/output/IAreaRepository';
+import { IAdscripcionRepository } from '../modules/catalogs/domain/ports/output/IAdscripcionRepository';
 import { IPuestoRepository } from '../modules/catalogs/domain/ports/output/IPuestoRepository';
 import { ILogger } from '../shared/domain';
 import { Area } from '../modules/catalogs/domain/entities/Area';
+import { Adscripcion } from '../modules/catalogs/domain/entities/Adscripcion';
 import { Puesto } from '../modules/catalogs/domain/entities/Puesto';
 import { connectMongoose, disconnectMongoose } from '../shared/infrastructure/adapters/output/database/mongo/mongoose';
 
@@ -27,7 +30,11 @@ dotenv.config();
 
 // Configuración del seed
 const SKIP_AREAS = process.env.SEED_CATALOGS_SKIP_AREAS === 'true';
+const SKIP_ADSCRIPCIONES = process.env.SEED_CATALOGS_SKIP_ADSCRIPCIONES === 'true';
 const SKIP_PUESTOS = process.env.SEED_CATALOGS_SKIP_PUESTOS === 'true';
+
+// Nombre de la adscripción a crear para todas las áreas
+const ADSCRIPCION_NOMBRE = 'Zona Ríos';
 
 // Datos de Áreas
 const AREAS_DATA = [
@@ -175,6 +182,88 @@ async function seedAreas(
 }
 
 /**
+ * Función para crear adscripciones
+ * Crea la adscripción "Zona Ríos" para todas las áreas existentes
+ */
+async function seedAdscripciones(
+  areaRepository: IAreaRepository,
+  adscripcionRepository: IAdscripcionRepository,
+  logger: ILogger
+): Promise<void> {
+  logger.info('Iniciando seed de adscripciones...');
+
+  let createdCount = 0;
+  let skippedCount = 0;
+  let errorCount = 0;
+
+  try {
+    // Obtener todas las áreas activas
+    const { areas } = await areaRepository.findAll(
+      { isActive: true },
+      1000, // Límite alto para obtener todas las áreas
+      0
+    );
+
+    if (areas.length === 0) {
+      logger.warn('No se encontraron áreas activas. No se pueden crear adscripciones.');
+      return;
+    }
+
+    logger.info(`Se encontraron ${areas.length} áreas activas. Creando adscripción "${ADSCRIPCION_NOMBRE}" para cada una...`);
+
+    for (const area of areas) {
+      try {
+        // Verificar si la adscripción ya existe para esta área
+        const existingAdscripcion = await adscripcionRepository.findByNombreAndAreaId(
+          ADSCRIPCION_NOMBRE,
+          area.id
+        );
+
+        if (existingAdscripcion) {
+          logger.debug(`Adscripción "${ADSCRIPCION_NOMBRE}" ya existe para el área "${area.nombre}", saltando...`);
+          skippedCount++;
+          continue;
+        }
+
+        // Crear la entidad Adscripcion
+        const adscripcion = Adscripcion.create({
+          nombre: ADSCRIPCION_NOMBRE,
+          areaId: area.id,
+          descripcion: `Adscripción ${ADSCRIPCION_NOMBRE} del área ${area.nombre}`,
+          isActive: true,
+        });
+
+        // Persistir la adscripción
+        await adscripcionRepository.create(adscripcion);
+        logger.info(`✅ Adscripción "${ADSCRIPCION_NOMBRE}" creada para el área: ${area.nombre}`);
+        createdCount++;
+      } catch (error: any) {
+        errorCount++;
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        logger.error(`❌ Error al crear adscripción "${ADSCRIPCION_NOMBRE}" para el área "${area.nombre}"`, errorObj, {
+          areaId: area.id,
+          areaNombre: area.nombre,
+          message: error.message,
+        });
+      }
+    }
+
+    logger.info('Seed de adscripciones completado', {
+      totalAreas: areas.length,
+      creadas: createdCount,
+      saltadas: skippedCount,
+      errores: errorCount,
+    });
+  } catch (error: any) {
+    const errorObj = error instanceof Error ? error : new Error(String(error));
+    logger.error('❌ Error al obtener áreas para crear adscripciones', errorObj, {
+      message: error.message,
+    });
+    throw error;
+  }
+}
+
+/**
  * Función para crear puestos
  */
 async function seedPuestos(
@@ -240,6 +329,7 @@ async function seedCatalogs(): Promise<void> {
     // Resolver dependencias
     logger = container.resolve<ILogger>('logger');
     const areaRepository = container.resolve<IAreaRepository>('areaRepository');
+    const adscripcionRepository = container.resolve<IAdscripcionRepository>('adscripcionRepository');
     const puestoRepository = container.resolve<IPuestoRepository>('puestoRepository');
 
     logger.info('Iniciando script de seed para catálogos');
@@ -256,6 +346,13 @@ async function seedCatalogs(): Promise<void> {
       logger.info('⏭️  Saltando seed de áreas (SEED_CATALOGS_SKIP_AREAS=true)');
     }
 
+    // Seed de adscripciones (requiere que existan áreas)
+    if (!SKIP_ADSCRIPCIONES) {
+      await seedAdscripciones(areaRepository, adscripcionRepository, logger);
+    } else {
+      logger.info('⏭️  Saltando seed de adscripciones (SEED_CATALOGS_SKIP_ADSCRIPCIONES=true)');
+    }
+
     // Seed de puestos
     if (!SKIP_PUESTOS) {
       await seedPuestos(puestoRepository, logger);
@@ -268,6 +365,9 @@ async function seedCatalogs(): Promise<void> {
     console.log('========================================');
     if (!SKIP_AREAS) {
       console.log(`Áreas: ${AREAS_DATA.length} definidas`);
+    }
+    if (!SKIP_ADSCRIPCIONES) {
+      console.log(`Adscripciones: "${ADSCRIPCION_NOMBRE}" creada para todas las áreas`);
     }
     if (!SKIP_PUESTOS) {
       console.log(`Puestos: ${PUESTOS_DATA.length} definidos`);

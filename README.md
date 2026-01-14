@@ -358,9 +358,9 @@ npm run pm2:startup
 | `npm run migrate:create` | Crea un nuevo archivo de migración |
 | `npm run migrate:list` | Lista todas las migraciones y su estado |
 | `npm run migrate:prune` | Elimina migraciones antiguas del historial |
-| `npm run seed` | Crea usuario administrador inicial y catálogos (áreas y puestos) |
+| `npm run seed` | Crea usuario administrador inicial y catálogos (áreas, adscripciones y puestos) |
 | `npm run seed:user` | Crea solo el usuario administrador inicial si no existe ningún usuario |
-| `npm run seed:catalogs` | Crea solo los catálogos (áreas y puestos) si no existen |
+| `npm run seed:catalogs` | Crea solo los catálogos (áreas, adscripciones y puestos) si no existen |
 | `npm test` | Ejecuta todos los tests (unitarios, integración y E2E) |
 | `npm run test:watch` | Ejecuta tests en modo watch (se re-ejecutan al cambiar archivos) |
 | `npm run test:coverage` | Ejecuta tests y genera reporte de cobertura |
@@ -490,7 +490,7 @@ npm run seed
 
 Este comando ejecuta en secuencia:
 1. `seed:user` - Crea el usuario administrador inicial
-2. `seed:catalogs` - Crea las áreas y puestos del catálogo
+2. `seed:catalogs` - Crea las áreas, adscripciones y puestos del catálogo
 
 ---
 
@@ -537,9 +537,9 @@ npm run seed:user
 
 ---
 
-## 📋 Crear Catálogos (Áreas y Puestos)
+## 📋 Crear Catálogos (Áreas, Adscripciones y Puestos)
 
-Para crear solo los catálogos (áreas y puestos):
+Para crear solo los catálogos (áreas, adscripciones y puestos):
 
 ```bash
 npm run seed:catalogs
@@ -547,17 +547,23 @@ npm run seed:catalogs
 
 Este script:
 - Crea 9 áreas organizacionales (Distribución, Planeación, Medición, etc.)
+- Crea la adscripción "Zona Ríos" para todas las áreas existentes
 - Crea 12 puestos técnicos y operativos (Liniero Comercial, Técnico de Distribución, etc.)
 - Verifica si cada registro ya existe antes de crearlo (idempotente)
 - Todos los registros se crean como activos (`isActive: true`)
 
+**Nota:** Las adscripciones se crean después de las áreas, ya que dependen de que existan áreas activas.
+
 ### Configuración del seed de catálogos
 
-Puedes saltar la creación de áreas o puestos usando variables de entorno:
+Puedes saltar la creación de áreas, adscripciones o puestos usando variables de entorno:
 
 ```bash
 # Saltar creación de áreas
 SEED_CATALOGS_SKIP_AREAS=true npm run seed:catalogs
+
+# Saltar creación de adscripciones
+SEED_CATALOGS_SKIP_ADSCRIPCIONES=true npm run seed:catalogs
 
 # Saltar creación de puestos
 SEED_CATALOGS_SKIP_PUESTOS=true npm run seed:catalogs
@@ -565,6 +571,7 @@ SEED_CATALOGS_SKIP_PUESTOS=true npm run seed:catalogs
 
 **Variables de entorno opcionales:**
 - `SEED_CATALOGS_SKIP_AREAS`: Si es `true`, no crea áreas (default: `false`)
+- `SEED_CATALOGS_SKIP_ADSCRIPCIONES`: Si es `true`, no crea adscripciones (default: `false`)
 - `SEED_CATALOGS_SKIP_PUESTOS`: Si es `true`, no crea puestos (default: `false`)
 
 **Áreas creadas:**
@@ -577,6 +584,9 @@ SEED_CATALOGS_SKIP_PUESTOS=true npm run seed:catalogs
 - Administración general
 - Servicios generales
 - TI
+
+**Adscripciones creadas:**
+- "Zona Ríos" - Se crea automáticamente para todas las áreas existentes
 
 **Puestos creados:**
 - Liniero Comercial

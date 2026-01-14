@@ -138,7 +138,7 @@ describe('Documents E2E Tests', () => {
       areaId: 'area-1',
       adscripcionId: 'adscripcion-1',
       puestoId: 'puesto-1',
-      tipoContrato: TipoContrato.BASE,
+      tipoContrato: TipoContrato.CONFIANZA,
       rfc: 'PEGJ800101ABC',
       curp: 'PEGJ800101HDFRRN01',
       imss: '12345678901',

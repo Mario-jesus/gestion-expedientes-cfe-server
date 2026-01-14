@@ -76,9 +76,9 @@ export function createCollaboratorRoutes(
    *                 description: ID del puesto
    *               tipoContrato:
    *                 type: string
-   *                 enum: [base, confianza, eventual, honorarios, otro]
+   *                 enum: [confianza, temporal_de_confianza, sindicalizados, temporal_sindicalizado, otro]
    *                 description: Tipo de contrato
-   *                 example: base
+   *                 example: confianza
    *               rfc:
    *                 type: string
    *                 description: RFC del colaborador
@@ -167,7 +167,7 @@ export function createCollaboratorRoutes(
    *         name: tipoContrato
    *         schema:
    *           type: string
-   *           enum: [base, confianza, eventual, honorarios, otro]
+   *           enum: [confianza, temporal_de_confianza, sindicalizados, temporal_sindicalizado, otro]
    *         description: Filtrar por tipo de contrato
    *       - in: query
    *         name: isActive
@@ -349,7 +349,7 @@ export function createCollaboratorRoutes(
    *                 type: string
    *               tipoContrato:
    *                 type: string
-   *                 enum: [base, confianza, eventual, honorarios, otro]
+   *                 enum: [confianza, temporal_de_confianza, sindicalizados, temporal_sindicalizado, otro]
    *               rfc:
    *                 type: string
    *               curp:
@@ -424,7 +424,7 @@ export function createCollaboratorRoutes(
    *                 type: string
    *               tipoContrato:
    *                 type: string
-   *                 enum: [base, confianza, eventual, honorarios, otro]
+   *                 enum: [confianza, temporal_de_confianza, sindicalizados, temporal_sindicalizado, otro]
    *               rfc:
    *                 type: string
    *               curp:
