@@ -38,8 +38,9 @@ async function startServer(): Promise<void> {
     logger.info('Database connected');
 
     // Iniciar servidor
-    server = app.listen(config.server.port, () => {
+    server = app.listen(config.server.port, config.server.host, () => {
       logger.info('Server started', {
+        host: config.server.host,
         port: config.server.port,
         environment: config.server.nodeEnv,
         healthCheck: `${config.server.baseUrl}:${config.server.port}/health`,

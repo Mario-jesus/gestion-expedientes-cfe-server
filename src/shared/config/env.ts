@@ -107,6 +107,9 @@ function getServerConfig() {
     );
   }
 
+  // Host del servidor (0.0.0.0 permite conexiones desde la red local)
+  const host = process.env.SERVER_HOST || '0.0.0.0';
+
   // URL base del servidor (sin barra final)
   const baseUrl = process.env.SERVER_BASE_URL || process.env.BASE_URL || 'http://localhost';
   // Remover barra final si existe
@@ -114,6 +117,7 @@ function getServerConfig() {
 
   return {
     port,
+    host,
     nodeEnv,
     baseUrl: cleanBaseUrl,
     isDevelopment: nodeEnv === 'development',

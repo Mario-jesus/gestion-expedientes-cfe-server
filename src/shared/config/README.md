@@ -98,9 +98,14 @@ DATABASE_NAME=gestion-expedientes-cfe
 ```env
 PORT=3000
 NODE_ENV=development
+# Host donde escucha el servidor (0.0.0.0 permite conexiones desde la red local)
+SERVER_HOST=0.0.0.0
+# URL base del servidor (usar la IP de tu máquina para acceso desde red local)
 SERVER_BASE_URL=http://localhost
 # O alternativamente:
 # BASE_URL=http://localhost
+# Ejemplo para red local:
+# SERVER_BASE_URL=http://192.168.1.100
 ```
 
 ### CORS

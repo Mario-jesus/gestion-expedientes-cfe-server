@@ -11,6 +11,7 @@ export interface DatabaseConfig {
 
 export interface ServerConfig {
   port: number;
+  host: string; // Host donde escucha el servidor (ej: 0.0.0.0 para red local, localhost para solo local)
   nodeEnv: string;
   baseUrl: string; // URL base del servidor (ej: http://localhost)
   isDevelopment: boolean;

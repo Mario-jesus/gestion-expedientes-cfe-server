@@ -58,11 +58,19 @@ PORT=4000
 # Ambiente: development, production, test (requerido)
 NODE_ENV=development
 
+# Host donde escucha el servidor (opcional, por defecto: 0.0.0.0)
+# 0.0.0.0 permite conexiones desde la red local
+SERVER_HOST=0.0.0.0
+
 # URL base del servidor (opcional, por defecto: http://localhost)
 SERVER_BASE_URL=http://localhost
 # O usar BASE_URL como alternativa
 # BASE_URL=http://localhost
+# Para acceso desde red local, usar la IP de tu máquina:
+# SERVER_BASE_URL=http://192.168.1.100
 ```
+
+**📖 Nota:** Para configurar el servidor para que funcione en la red local, consulta la [guía de configuración de red local](./docs/CONFIGURACION_RED_LOCAL.md).
 
 #### Variables de Base de Datos (MongoDB)
 
@@ -325,7 +333,7 @@ npm start
 
 Para ejecutar el servidor con PM2 en Windows y configurar el inicio automático en cada nueva sesión, consulta la guía completa:
 
-📖 **[Ver guía de configuración de PM2](./PM2-SETUP.md)**
+📖 **[Ver guía de configuración de PM2](./docs/PM2-SETUP.md)**
 
 **Comandos rápidos:**
 
@@ -375,7 +383,7 @@ npm run pm2:startup
 | `npm run pm2:save` | Guarda la configuración actual de PM2 |
 | `npm run pm2:startup` | Configura el inicio automático de PM2 en Windows |
 
-**Nota:** Para más información sobre PM2, consulta [PM2-SETUP.md](./PM2-SETUP.md)
+**Nota:** Para más información sobre PM2, consulta [PM2-SETUP.md](./docs/PM2-SETUP.md)
 
 ## 🧪 Verificar que funciona
 
@@ -945,6 +953,18 @@ Si los tests fallan:
 3. Si hay problemas con path aliases, verifica `tsconfig.json` y `jest.config.js`
 
 ## 📚 Guías Adicionales
+
+### Configuración para Red Local
+
+Si necesitas que el servidor sea accesible desde otros dispositivos en tu red local, consulta la guía completa:
+
+📖 **[Ver guía de configuración de red local](./docs/CONFIGURACION_RED_LOCAL.md)**
+
+Esta guía incluye:
+- Configuración del backend para acceso desde la red local
+- Configuración del frontend para conectarse al backend
+- Solución de problemas comunes
+- Consideraciones de seguridad
 
 ### Flujo de trabajo típico
 
