@@ -131,8 +131,13 @@ export class UserController {
 
       const filters: ListUsersDTO['filters'] = {};
       if (role) filters.role = role;
+      // Por defecto, solo mostrar usuarios activos
+      // Si se especifica isActive explícitamente, usar ese valor
       if (req.query.isActive !== undefined) {
         filters.isActive = req.query.isActive === 'true';
+      } else {
+        // Por defecto, solo activos
+        filters.isActive = true;
       }
       if (req.query.search) {
         filters.search = req.query.search as string;

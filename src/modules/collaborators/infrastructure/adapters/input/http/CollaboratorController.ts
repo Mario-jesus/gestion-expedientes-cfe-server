@@ -145,8 +145,13 @@ export class CollaboratorController {
       if (tipoContrato) {
         filters.tipoContrato = tipoContrato;
       }
+      // Por defecto, solo mostrar colaboradores activos
+      // Si se especifica isActive explícitamente, usar ese valor
       if (req.query.isActive !== undefined) {
         filters.isActive = req.query.isActive === 'true';
+      } else {
+        // Por defecto, solo activos
+        filters.isActive = true;
       }
       if (req.query.search) {
         filters.search = req.query.search as string;
@@ -350,11 +355,13 @@ export class CollaboratorController {
         }
       }
 
-      // Por defecto solo documentos activos, a menos que se especifique explícitamente isActive=false
+      // Por defecto, solo mostrar documentos activos
+      // Si se especifica isActive explícitamente, usar ese valor
       if (req.query.isActive !== undefined) {
         filters.isActive = req.query.isActive === 'true';
       } else {
-        filters.isActive = true; // Por defecto solo documentos activos
+        // Por defecto, solo activos
+        filters.isActive = true;
       }
 
       this.logger.debug('Obteniendo documentos del colaborador', {

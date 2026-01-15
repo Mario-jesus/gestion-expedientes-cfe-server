@@ -173,9 +173,11 @@ export class DocumentController {
       const dto: ListDocumentsFiltersDTO = {
         ...(req.query.collaboratorId && { collaboratorId: req.query.collaboratorId as string }),
         ...(kind && { kind }),
-        ...(req.query.isActive !== undefined && {
-          isActive: req.query.isActive === 'true',
-        }),
+        // Por defecto, solo mostrar documentos activos
+        // Si se especifica isActive explícitamente, usar ese valor
+        isActive: req.query.isActive !== undefined
+          ? req.query.isActive === 'true'
+          : true,
         ...(req.query.documentTypeId && { documentTypeId: req.query.documentTypeId as string }),
         ...(limit !== undefined && { limit }),
         ...(offset !== undefined && { offset }),
