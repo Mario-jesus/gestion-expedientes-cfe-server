@@ -95,8 +95,13 @@ export class AdscripcionController {
       const sortOrder = req.query.sortOrder as 'asc' | 'desc' | undefined;
 
       const filters: ListAdscripcionesDTO['filters'] = {};
+      // Por defecto, solo mostrar adscripciones activas
+      // Si se especifica isActive explícitamente, usar ese valor
       if (req.query.isActive !== undefined) {
         filters.isActive = req.query.isActive === 'true';
+      } else {
+        // Por defecto, solo activas
+        filters.isActive = true;
       }
       if (req.query.search) {
         filters.search = req.query.search as string;
