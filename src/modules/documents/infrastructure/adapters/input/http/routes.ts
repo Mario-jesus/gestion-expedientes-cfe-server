@@ -68,7 +68,7 @@ export function createDocumentRoutes(
    *                 description: Descripción adicional del documento (opcional)
    *               documentTypeId:
    *                 type: string
-   *                 description: ID del tipo de documento específico (opcional, solo para kind 'otro')
+   *                 description: ID del tipo de documento específico (opcional, solo para kind 'cchl')
    *     responses:
    *       201:
    *         description: Documento creado exitosamente
@@ -306,7 +306,7 @@ export function createDocumentRoutes(
    *                 description: Descripción del documento
    *               documentTypeId:
    *                 type: string
-   *                 description: ID del tipo de documento (solo para kind 'otro')
+   *                 description: ID del tipo de documento (solo para kind 'cchl')
    *               isActive:
    *                 type: boolean
    *                 description: Estado activo/inactivo

@@ -7,6 +7,6 @@
 export interface UpdateDocumentDTO {
   periodo?: string;
   descripcion?: string;
-  documentTypeId?: string; // Solo para kind: 'otro'
+  documentTypeId?: string; // Solo para kind: 'cchl'
   isActive?: boolean;
 }

@@ -9,6 +9,6 @@ export interface CreateDocumentDTO {
   kind: DocumentKind;
   periodo?: string; // Opcional
   descripcion?: string; // Opcional
-  documentTypeId?: string; // Opcional, solo para kind: 'otro'
+  documentTypeId?: string; // Opcional, solo para kind: 'cchl'
   // El archivo se maneja por separado en el controller
 }

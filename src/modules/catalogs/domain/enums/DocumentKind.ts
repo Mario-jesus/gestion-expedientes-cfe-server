@@ -7,5 +7,5 @@ export enum DocumentKind {
   PERFIL = 'perfil',
   CONSTANCIA = 'constancia',
   C0_03 = 'c0_03',
-  OTRO = 'otro',
+  CCHL = 'cchl',
 }

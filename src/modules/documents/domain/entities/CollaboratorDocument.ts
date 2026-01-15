@@ -15,7 +15,7 @@ export interface CollaboratorDocumentProps {
   fileType: string;
   uploadedBy: string;
   uploadedAt: Date;
-  documentTypeId?: string | undefined; // Solo para kind: 'otro'
+  documentTypeId?: string | undefined; // Solo para kind: 'cchl'
   isActive: boolean;
 }
 
@@ -93,8 +93,8 @@ export class CollaboratorDocument extends Entity<CollaboratorDocumentProps> {
       throw new Error('El uploadedBy es requerido');
     }
 
-    // Validar que si kind es 'otro', se recomienda documentTypeId
-    if (props.kind === DocumentKind.OTRO && !props.documentTypeId) {
+    // Validar que si kind es 'cchl', se recomienda documentTypeId
+    if (props.kind === DocumentKind.CCHL && !props.documentTypeId) {
       // No es un error, solo una advertencia (se puede crear sin documentTypeId)
       // Pero es recomendado tenerlo
     }
@@ -253,12 +253,12 @@ export class CollaboratorDocument extends Entity<CollaboratorDocumentProps> {
   }
 
   /**
-   * Actualiza el documentTypeId (solo para kind: 'otro')
+   * Actualiza el documentTypeId (solo para kind: 'cchl')
    */
   updateDocumentTypeId(documentTypeId: string | undefined): void {
-    if (this.props.kind !== DocumentKind.OTRO && documentTypeId) {
+    if (this.props.kind !== DocumentKind.CCHL && documentTypeId) {
       throw new Error(
-        'documentTypeId solo puede ser especificado cuando kind es "otro"'
+        'documentTypeId solo puede ser especificado cuando kind es "cchl"'
       );
     }
     this.props.documentTypeId = documentTypeId?.trim() || undefined;

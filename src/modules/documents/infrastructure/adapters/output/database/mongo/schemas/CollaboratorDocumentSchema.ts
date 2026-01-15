@@ -93,7 +93,7 @@ const CollaboratorDocumentSchema = new Schema<CollaboratorDocumentMongo>(
     documentTypeId: {
       type: String,
       required: false,
-      index: true, // Índice para filtros cuando kind='otro'
+      index: true, // Índice para filtros cuando kind='cchl'
     },
     isActive: {
       type: Boolean,
