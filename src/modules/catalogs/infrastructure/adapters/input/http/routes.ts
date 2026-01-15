@@ -173,66 +173,6 @@ export function createCatalogRoutes(
 
   /**
    * @swagger
-   * /api/catalogs/areas/{id}/adscripciones:
-   *   get:
-   *     summary: Obtener adscripciones del área
-   *     description: Retorna todas las adscripciones asociadas a un área específica.
-   *     tags: [Catálogos - Áreas]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: ID del área
-   *       - in: query
-   *         name: isActive
-   *         schema:
-   *           type: boolean
-   *         description: Filtrar por estado activo/inactivo
-   *     responses:
-   *       200:
-   *         description: Lista de adscripciones del área
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 data:
-   *                   type: array
-   *                   items:
-   *                     type: object
-   *                     properties:
-   *                       id:
-   *                         type: string
-   *                       nombre:
-   *                         type: string
-   *                       areaId:
-   *                         type: string
-   *                       descripcion:
-   *                         type: string
-   *                       isActive:
-   *                         type: boolean
-   *       404:
-   *         description: Área no encontrada
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Error'
-   */
-  // GET /areas/:id/adscripciones - Obtener adscripciones del área
-  // IMPORTANTE: Esta ruta debe ir antes de GET /areas/:id para evitar que "adscripciones" sea interpretado como un ID
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  router.get(
-    '/areas/:id/adscripciones',
-    authMiddleware as any,
-    areaController.getAdscripciones.bind(areaController) as any
-  );
-
-  /**
-   * @swagger
    * /api/catalogs/areas/{id}:
    *   get:
    *     summary: Obtener área por ID
@@ -366,7 +306,7 @@ export function createCatalogRoutes(
    *             schema:
    *               $ref: '#/components/schemas/Error'
    *       400:
-   *         description: No se puede eliminar porque tiene adscripciones activas
+   *         description: No se puede eliminar porque tiene colaboradores asociados
    *         content:
    *           application/json:
    *             schema:
@@ -499,11 +439,6 @@ export function createCatalogRoutes(
    *       - bearerAuth: []
    *     parameters:
    *       - in: query
-   *         name: areaId
-   *         schema:
-   *           type: string
-   *         description: Filtrar por ID de área
-   *       - in: query
    *         name: isActive
    *         schema:
    *           type: boolean
@@ -542,7 +477,7 @@ export function createCatalogRoutes(
    *                         type: string
    *                       nombre:
    *                         type: string
-   *                       areaId:
+   *                       adscripcion:
    *                         type: string
    *                       descripcion:
    *                         type: string
@@ -564,15 +499,16 @@ export function createCatalogRoutes(
    *             type: object
    *             required:
    *               - nombre
-   *               - areaId
+   *               - adscripcion
    *             properties:
    *               nombre:
    *                 type: string
    *                 description: Nombre de la adscripción
    *                 example: Central Hidroeléctrica
-   *               areaId:
+   *               adscripcion:
    *                 type: string
-   *                 description: ID del área a la que pertenece
+   *                 description: Texto de la adscripción (campo libre)
+   *                 example: Central Hidroeléctrica Manuel Moreno Torres
    *               descripcion:
    *                 type: string
    *                 description: Descripción de la adscripción
@@ -588,7 +524,7 @@ export function createCatalogRoutes(
    *       403:
    *         description: No autorizado (solo admin)
    *       409:
-   *         description: Adscripción con ese nombre ya existe en el área
+   *         description: Adscripción con ese nombre ya existe
    */
   // GET /adscripciones - Listar adscripciones (todos los usuarios autenticados)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -636,6 +572,8 @@ export function createCatalogRoutes(
    *             type: object
    *             properties:
    *               nombre:
+   *                 type: string
+   *               adscripcion:
    *                 type: string
    *               descripcion:
    *                 type: string

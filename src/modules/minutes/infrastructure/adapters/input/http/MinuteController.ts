@@ -205,9 +205,9 @@ export class MinuteController {
 
       const dto: ListMinutesFiltersDTO = {
         ...(tipo && { tipo }),
-        ...(req.query.isActive !== undefined && {
-          isActive: req.query.isActive === 'true',
-        }),
+        isActive: req.query.isActive !== undefined 
+          ? req.query.isActive === 'true' 
+          : true, // Por defecto solo minutas activas
         ...(fechaDesde && { fechaDesde }),
         ...(fechaHasta && { fechaHasta }),
         ...(req.query.search && { search: req.query.search as string }),

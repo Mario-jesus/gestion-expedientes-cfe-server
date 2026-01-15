@@ -46,7 +46,7 @@ export class AdscripcionController {
 
       this.logger.info('Creando adscripción', {
         nombre: dto.nombre,
-        areaId: dto.areaId,
+        adscripcion: dto.adscripcion,
         createdBy,
         ip: req.ip,
         userAgent: req.get('user-agent'),
@@ -95,9 +95,6 @@ export class AdscripcionController {
       const sortOrder = req.query.sortOrder as 'asc' | 'desc' | undefined;
 
       const filters: ListAdscripcionesDTO['filters'] = {};
-      if (req.query.areaId) {
-        filters.areaId = req.query.areaId as string;
-      }
       if (req.query.isActive !== undefined) {
         filters.isActive = req.query.isActive === 'true';
       }

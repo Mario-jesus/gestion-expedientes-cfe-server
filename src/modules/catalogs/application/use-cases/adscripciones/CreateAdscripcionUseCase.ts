@@ -1,10 +1,8 @@
 import { IEventBus, ILogger } from '@shared/domain';
 import { Adscripcion } from '../../../domain/entities/Adscripcion';
-import { AreaNotFoundError } from '../../../domain/exceptions/AreaNotFoundError';
 import { DuplicateAdscripcionError } from '../../../domain/exceptions/DuplicateAdscripcionError';
 import { AdscripcionCreated } from '../../../domain/events/AdscripcionCreated';
 import { IAdscripcionRepository } from '../../../domain/ports/output/IAdscripcionRepository';
-import { IAreaRepository } from '../../../domain/ports/output/IAreaRepository';
 import { ICreateAdscripcionUseCase } from '../../ports/input/adscripciones/ICreateAdscripcionUseCase';
 import { CreateAdscripcionDTO } from '../../dto/adscripciones/CreateAdscripcionDTO';
 
@@ -14,7 +12,6 @@ import { CreateAdscripcionDTO } from '../../dto/adscripciones/CreateAdscripcionD
 export class CreateAdscripcionUseCase implements ICreateAdscripcionUseCase {
   constructor(
     private readonly adscripcionRepository: IAdscripcionRepository,
-    private readonly areaRepository: IAreaRepository,
     private readonly eventBus: IEventBus,
     private readonly logger: ILogger
   ) {}
@@ -22,39 +19,24 @@ export class CreateAdscripcionUseCase implements ICreateAdscripcionUseCase {
   async execute(dto: CreateAdscripcionDTO, createdBy?: string): Promise<Adscripcion> {
     this.logger.info('Ejecutando caso de uso: Crear adscripción', {
       nombre: dto.nombre,
-      areaId: dto.areaId,
+      adscripcion: dto.adscripcion,
       createdBy,
     });
 
-    // Validar que el área existe
-    const area = await this.areaRepository.findById(dto.areaId);
-    if (!area) {
-      this.logger.warn('Intento de crear adscripción con área inexistente', {
-        areaId: dto.areaId,
-        nombre: dto.nombre,
+    // Validar que el valor de adscripcion no exista (único)
+    const adscripcionExists = await this.adscripcionRepository.existsByAdscripcion(dto.adscripcion);
+    if (adscripcionExists) {
+      this.logger.warn('Intento de crear adscripción con valor duplicado', {
+        adscripcion: dto.adscripcion,
         createdBy,
       });
-      throw new AreaNotFoundError(dto.areaId);
-    }
-
-    // Validar que el nombre no exista en el área
-    const nombreExists = await this.adscripcionRepository.existsByNombreAndAreaId(
-      dto.nombre,
-      dto.areaId
-    );
-    if (nombreExists) {
-      this.logger.warn('Intento de crear adscripción con nombre duplicado en el área', {
-        nombre: dto.nombre,
-        areaId: dto.areaId,
-        createdBy,
-      });
-      throw new DuplicateAdscripcionError(dto.nombre, dto.areaId);
+      throw new DuplicateAdscripcionError(dto.adscripcion);
     }
 
     // Crear la entidad Adscripcion
     const adscripcion = Adscripcion.create({
       nombre: dto.nombre,
-      areaId: dto.areaId,
+      adscripcion: dto.adscripcion,
       descripcion: dto.descripcion,
       isActive: dto.isActive ?? true,
     });

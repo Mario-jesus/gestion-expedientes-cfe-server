@@ -2,16 +2,16 @@ import { DomainException } from '@shared/domain/exceptions/DomainException';
 
 /**
  * Excepción de dominio que se lanza cuando se intenta crear una adscripción
- * con un nombre que ya existe en el área especificada
+ * con un valor de adscripción que ya existe
  */
 export class DuplicateAdscripcionError extends DomainException {
-  constructor(nombre: string, areaId: string) {
+  constructor(adscripcion: string) {
     super(
-      `Ya existe una adscripción con el nombre '${nombre}' en el área especificada`,
+      `Ya existe una adscripción con el valor '${adscripcion}'`,
       409, // Conflict
       'DUPLICATE_ADSCRIPCION',
-      'nombre', // Campo que causó el error
-      { nombre, areaId } // Detalles adicionales
+      'adscripcion', // Campo que causó el error
+      { adscripcion } // Detalles adicionales
     );
   }
 }

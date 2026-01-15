@@ -432,7 +432,7 @@ export class AuditLogEventHandler {
         entityId: event.adscripcion.id,
         metadata: {
           nombre: event.adscripcion.nombre,
-          areaId: event.adscripcion.areaId,
+          adscripcion: event.adscripcion.adscripcion,
         },
       };
     }

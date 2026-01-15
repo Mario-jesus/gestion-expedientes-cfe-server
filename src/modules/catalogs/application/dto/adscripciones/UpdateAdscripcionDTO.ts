@@ -4,7 +4,7 @@
  */
 export interface UpdateAdscripcionDTO {
   nombre?: string;
-  areaId?: string;
+  adscripcion?: string;
   descripcion?: string;
   isActive?: boolean;
 }

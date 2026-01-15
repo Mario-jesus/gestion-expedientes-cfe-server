@@ -8,17 +8,12 @@ export interface ListAdscripcionesDTO {
    */
   filters?: {
     /**
-     * Filtrar por área
-     */
-    areaId?: string;
-
-    /**
      * Filtrar por estado activo/inactivo
      */
     isActive?: boolean;
 
     /**
-     * Búsqueda por texto (busca en nombre)
+     * Búsqueda por texto (busca en nombre y adscripción)
      */
     search?: string;
   };

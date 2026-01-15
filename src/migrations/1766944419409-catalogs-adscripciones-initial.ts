@@ -5,12 +5,11 @@ import { Connection } from 'mongoose';
  * Fecha: 2025-01-28
  * 
  * Esta migración crea todos los índices necesarios para la colección adscripciones:
- * - Índice único compuesto: nombre + areaId (nombre único dentro del área)
- * - Índices simples: nombre, areaId, isActive
- * - Índices compuestos:
- *   - areaId + isActive
- *   - isActive + createdAt (descendente)
- * - Índice de texto: búsqueda full-text en nombre
+ * - Índice único: adscripcion (adscripcion única globalmente)
+ * - Índice simple: nombre (no único, permite múltiples registros con mismo nombre)
+ * - Índice simple: isActive
+ * - Índice compuesto: isActive + createdAt (descendente)
+ * - Índice de texto: búsqueda full-text en nombre y adscripcion
  */
 export async function up(connection: Connection): Promise<void> {
   if (!connection.db) {
@@ -19,7 +18,22 @@ export async function up(connection: Connection): Promise<void> {
   const db = connection.db;
   const collection = db.collection('adscripciones');
 
-  // 1. Índice simple para nombre
+  // 1. Índice único para adscripcion (adscripcion única globalmente)
+  try {
+    await collection.createIndex(
+      { adscripcion: 1 },
+      { unique: true, name: 'adscripcion_1' }
+    );
+    console.log('✓ Índice único creado: adscripcion');
+  } catch (error: any) {
+    if (error.code === 85) {
+      console.log('⚠ Índice único adscripcion ya existe, omitiendo...');
+    } else {
+      throw error;
+    }
+  }
+
+  // 2. Índice simple para nombre (no único, permite duplicados)
   try {
     await collection.createIndex(
       { nombre: 1 },
@@ -29,21 +43,6 @@ export async function up(connection: Connection): Promise<void> {
   } catch (error: any) {
     if (error.code === 85) {
       console.log('⚠ Índice nombre ya existe, omitiendo...');
-    } else {
-      throw error;
-    }
-  }
-
-  // 2. Índice simple para areaId
-  try {
-    await collection.createIndex(
-      { areaId: 1 },
-      { name: 'areaId_1' }
-    );
-    console.log('✓ Índice creado: areaId');
-  } catch (error: any) {
-    if (error.code === 85) {
-      console.log('⚠ Índice areaId ya existe, omitiendo...');
     } else {
       throw error;
     }
@@ -64,37 +63,7 @@ export async function up(connection: Connection): Promise<void> {
     }
   }
 
-  // 4. Índice único compuesto: nombre + areaId (nombre único dentro del área)
-  try {
-    await collection.createIndex(
-      { nombre: 1, areaId: 1 },
-      { unique: true, name: 'nombre_areaId_unique' }
-    );
-    console.log('✓ Índice único compuesto creado: nombre + areaId');
-  } catch (error: any) {
-    if (error.code === 85) {
-      console.log('⚠ Índice único compuesto nombre+areaId ya existe, omitiendo...');
-    } else {
-      throw error;
-    }
-  }
-
-  // 5. Índice compuesto: areaId + isActive
-  try {
-    await collection.createIndex(
-      { areaId: 1, isActive: 1 },
-      { name: 'areaId_1_isActive_1' }
-    );
-    console.log('✓ Índice compuesto creado: areaId + isActive');
-  } catch (error: any) {
-    if (error.code === 85) {
-      console.log('⚠ Índice compuesto areaId+isActive ya existe, omitiendo...');
-    } else {
-      throw error;
-    }
-  }
-
-  // 6. Índice compuesto: isActive + createdAt (descendente)
+  // 4. Índice compuesto: isActive + createdAt (descendente)
   try {
     await collection.createIndex(
       { isActive: 1, createdAt: -1 },
@@ -109,13 +78,13 @@ export async function up(connection: Connection): Promise<void> {
     }
   }
 
-  // 7. Índice de texto para búsqueda full-text (nombre)
+  // 5. Índice de texto para búsqueda full-text (nombre y adscripcion)
   try {
     await collection.createIndex(
-      { nombre: 'text' },
+      { nombre: 'text', adscripcion: 'text' },
       { name: 'adscripcion_text_search' }
     );
-    console.log('✓ Índice de texto creado: adscripcion_text_search');
+    console.log('✓ Índice de texto creado: adscripcion_text_search (nombre + adscripcion)');
   } catch (error: any) {
     if (error.code === 85) {
       console.log('⚠ Índice de texto ya existe, omitiendo...');
@@ -140,11 +109,9 @@ export async function down(connection: Connection): Promise<void> {
   const indexesToDrop = [
     'adscripcion_text_search',
     'isActive_1_createdAt_-1',
-    'areaId_1_isActive_1',
-    'nombre_areaId_unique',
     'isActive_1',
-    'areaId_1',
     'nombre_1',
+    'adscripcion_1',
   ];
 
   for (const indexName of indexesToDrop) {

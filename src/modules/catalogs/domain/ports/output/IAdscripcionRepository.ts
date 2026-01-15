@@ -14,12 +14,19 @@ export interface IAdscripcionRepository {
   findById(id: string): Promise<Adscripcion | null>;
 
   /**
-   * Busca una adscripción por su nombre dentro de un área
+   * Busca una adscripción por su nombre
    * @param nombre - Nombre de la adscripción
-   * @param areaId - ID del área
+   * @returns Adscripcion si existe, null si no existe
+   * @note Puede haber múltiples adscripciones con el mismo nombre, retorna la primera encontrada
+   */
+  findByNombre(nombre: string): Promise<Adscripcion | null>;
+
+  /**
+   * Busca una adscripción por su valor de adscripción
+   * @param adscripcion - Valor de la adscripción
    * @returns Adscripcion si existe, null si no existe
    */
-  findByNombreAndAreaId(nombre: string, areaId: string): Promise<Adscripcion | null>;
+  findByAdscripcion(adscripcion: string): Promise<Adscripcion | null>;
 
   /**
    * Guarda una adscripción (crea o actualiza)
@@ -32,7 +39,7 @@ export interface IAdscripcionRepository {
    * Crea una nueva adscripción
    * @param adscripcion - Adscripción a crear
    * @returns La adscripción creada
-   * @throws DuplicateAdscripcionError si el nombre ya existe en el área
+   * @throws DuplicateAdscripcionError si la adscripción (campo) ya existe
    */
   create(adscripcion: Adscripcion): Promise<Adscripcion>;
 
@@ -60,9 +67,8 @@ export interface IAdscripcionRepository {
    */
   findAll(
     filters?: {
-      areaId?: string;
       isActive?: boolean;
-      search?: string; // Búsqueda por nombre
+      search?: string; // Búsqueda por nombre y adscripción
     },
     limit?: number,
     offset?: number,
@@ -71,17 +77,9 @@ export interface IAdscripcionRepository {
   ): Promise<{ adscripciones: Adscripcion[]; total: number }>;
 
   /**
-   * Verifica si existe una adscripción con el nombre dado en el área especificada
+   * Verifica si existe una adscripción con el valor de adscripción dado
    */
-  existsByNombreAndAreaId(nombre: string, areaId: string): Promise<boolean>;
-
-  /**
-   * Busca todas las adscripciones de un área
-   * @param areaId - ID del área
-   * @param isActive - Filtrar solo activas (opcional)
-   * @returns Lista de adscripciones del área
-   */
-  findByAreaId(areaId: string, isActive?: boolean): Promise<Adscripcion[]>;
+  existsByAdscripcion(adscripcion: string): Promise<boolean>;
 
   /**
    * Cuenta cuántos colaboradores tienen asociada esta adscripción

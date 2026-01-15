@@ -13,21 +13,27 @@ import { ILogger } from '@shared/domain';
 
 export class InMemoryAdscripcionRepository implements IAdscripcionRepository {
   private adscripciones: Map<string, Adscripcion> = new Map();
-  private adscripcionesByNombreAndArea: Map<string, string> = new Map(); // "nombre|areaId" -> adscripcionId
+  private adscripcionesByNombre: Map<string, string> = new Map(); // "nombre" -> adscripcionId (para búsquedas)
+  private adscripcionesByAdscripcion: Map<string, string> = new Map(); // "adscripcion" -> adscripcionId (único)
 
   constructor(private readonly logger: ILogger) {}
-
-  private getKey(nombre: string, areaId: string): string {
-    return `${nombre.trim().toLowerCase()}|${areaId}`;
-  }
 
   async findById(id: string): Promise<Adscripcion | null> {
     return this.adscripciones.get(id) || null;
   }
 
-  async findByNombreAndAreaId(nombre: string, areaId: string): Promise<Adscripcion | null> {
-    const key = this.getKey(nombre, areaId);
-    const adscripcionId = this.adscripcionesByNombreAndArea.get(key);
+  async findByNombre(nombre: string): Promise<Adscripcion | null> {
+    const key = nombre.trim().toLowerCase();
+    const adscripcionId = this.adscripcionesByNombre.get(key);
+    if (!adscripcionId) {
+      return null;
+    }
+    return this.adscripciones.get(adscripcionId) || null;
+  }
+
+  async findByAdscripcion(adscripcion: string): Promise<Adscripcion | null> {
+    const key = adscripcion.trim().toLowerCase();
+    const adscripcionId = this.adscripcionesByAdscripcion.get(key);
     if (!adscripcionId) {
       return null;
     }
@@ -43,23 +49,28 @@ export class InMemoryAdscripcionRepository implements IAdscripcionRepository {
   }
 
   async create(adscripcion: Adscripcion): Promise<Adscripcion> {
-    // Verificar que el nombre no exista en el área
-    const existing = await this.findByNombreAndAreaId(adscripcion.nombre, adscripcion.areaId);
+    // Verificar que el valor de adscripcion no exista (único)
+    const existing = await this.findByAdscripcion(adscripcion.adscripcion);
     if (existing && existing.id !== adscripcion.id) {
-      throw new DuplicateAdscripcionError(adscripcion.nombre, adscripcion.areaId);
+      throw new DuplicateAdscripcionError(adscripcion.adscripcion);
     }
 
     // Guardar adscripción
     this.adscripciones.set(adscripcion.id, adscripcion);
-    this.adscripcionesByNombreAndArea.set(
-      this.getKey(adscripcion.nombre, adscripcion.areaId),
+    // Índices (nombre puede duplicarse, adscripcion no)
+    this.adscripcionesByNombre.set(
+      adscripcion.nombre.trim().toLowerCase(),
+      adscripcion.id
+    );
+    this.adscripcionesByAdscripcion.set(
+      adscripcion.adscripcion.trim().toLowerCase(),
       adscripcion.id
     );
 
     this.logger.debug('Adscripción creada en memoria', {
       adscripcionId: adscripcion.id,
       nombre: adscripcion.nombre,
-      areaId: adscripcion.areaId,
+      adscripcion: adscripcion.adscripcion,
     });
 
     return adscripcion;
@@ -71,21 +82,27 @@ export class InMemoryAdscripcionRepository implements IAdscripcionRepository {
       throw new AdscripcionNotFoundError(adscripcion.id);
     }
 
-    // Verificar que el nombre no esté en uso por otra adscripción en el mismo área
-    const existingByNombre = await this.findByNombreAndAreaId(
-      adscripcion.nombre,
-      adscripcion.areaId
-    );
-    if (existingByNombre && existingByNombre.id !== adscripcion.id) {
-      throw new DuplicateAdscripcionError(adscripcion.nombre, adscripcion.areaId);
+    // Verificar que el valor de adscripcion no esté en uso por otra adscripción (único)
+    if (adscripcion.adscripcion !== existing.adscripcion) {
+      const existingByAdscripcion = await this.findByAdscripcion(adscripcion.adscripcion);
+      if (existingByAdscripcion && existingByAdscripcion.id !== adscripcion.id) {
+        throw new DuplicateAdscripcionError(adscripcion.adscripcion);
+      }
     }
 
-    // Actualizar índice si el nombre o área cambiaron
-    const oldKey = this.getKey(existing.nombre, existing.areaId);
-    const newKey = this.getKey(adscripcion.nombre, adscripcion.areaId);
-    if (oldKey !== newKey) {
-      this.adscripcionesByNombreAndArea.delete(oldKey);
-      this.adscripcionesByNombreAndArea.set(newKey, adscripcion.id);
+    // Actualizar índices si cambiaron
+    const oldNombreKey = existing.nombre.trim().toLowerCase();
+    const newNombreKey = adscripcion.nombre.trim().toLowerCase();
+    if (oldNombreKey !== newNombreKey) {
+      this.adscripcionesByNombre.delete(oldNombreKey);
+      this.adscripcionesByNombre.set(newNombreKey, adscripcion.id);
+    }
+
+    const oldAdscripcionKey = existing.adscripcion.trim().toLowerCase();
+    const newAdscripcionKey = adscripcion.adscripcion.trim().toLowerCase();
+    if (oldAdscripcionKey !== newAdscripcionKey) {
+      this.adscripcionesByAdscripcion.delete(oldAdscripcionKey);
+      this.adscripcionesByAdscripcion.set(newAdscripcionKey, adscripcion.id);
     }
 
     // Actualizar adscripción
@@ -109,7 +126,7 @@ export class InMemoryAdscripcionRepository implements IAdscripcionRepository {
     const inactiveAdscripcion = Adscripcion.fromPersistence(
       {
         nombre: adscripcion.nombre,
-        areaId: adscripcion.areaId,
+        adscripcion: adscripcion.adscripcion,
         descripcion: adscripcion.descripcion,
         isActive: false,
       },
@@ -129,7 +146,6 @@ export class InMemoryAdscripcionRepository implements IAdscripcionRepository {
 
   async findAll(
     filters?: {
-      areaId?: string;
       isActive?: boolean;
       search?: string;
     },
@@ -141,12 +157,6 @@ export class InMemoryAdscripcionRepository implements IAdscripcionRepository {
     let filteredAdscripciones = Array.from(this.adscripciones.values());
 
     // Aplicar filtros
-    if (filters?.areaId) {
-      filteredAdscripciones = filteredAdscripciones.filter(
-        (a) => a.areaId === filters.areaId
-      );
-    }
-
     if (filters?.isActive !== undefined) {
       filteredAdscripciones = filteredAdscripciones.filter(
         (a) => a.isActive === filters.isActive
@@ -156,7 +166,8 @@ export class InMemoryAdscripcionRepository implements IAdscripcionRepository {
     if (filters?.search) {
       const searchLower = filters.search.toLowerCase();
       filteredAdscripciones = filteredAdscripciones.filter((a) =>
-        a.nombre.toLowerCase().includes(searchLower)
+        a.nombre.toLowerCase().includes(searchLower) ||
+        a.adscripcion.toLowerCase().includes(searchLower)
       );
     }
 
@@ -184,21 +195,14 @@ export class InMemoryAdscripcionRepository implements IAdscripcionRepository {
     };
   }
 
-  async existsByNombreAndAreaId(nombre: string, areaId: string): Promise<boolean> {
-    const adscripcion = await this.findByNombreAndAreaId(nombre, areaId);
+  async existsByNombre(nombre: string): Promise<boolean> {
+    const adscripcion = await this.findByNombre(nombre);
     return adscripcion !== null;
   }
 
-  async findByAreaId(areaId: string, isActive?: boolean): Promise<Adscripcion[]> {
-    let adscripciones = Array.from(this.adscripciones.values()).filter(
-      (a) => a.areaId === areaId
-    );
-
-    if (isActive !== undefined) {
-      adscripciones = adscripciones.filter((a) => a.isActive === isActive);
-    }
-
-    return adscripciones;
+  async existsByAdscripcion(adscripcion: string): Promise<boolean> {
+    const found = await this.findByAdscripcion(adscripcion);
+    return found !== null;
   }
 
   async countCollaboratorsByAdscripcionId(
@@ -215,6 +219,7 @@ export class InMemoryAdscripcionRepository implements IAdscripcionRepository {
    */
   clear(): void {
     this.adscripciones.clear();
-    this.adscripcionesByNombreAndArea.clear();
+    this.adscripcionesByNombre.clear();
+    this.adscripcionesByAdscripcion.clear();
   }
 }

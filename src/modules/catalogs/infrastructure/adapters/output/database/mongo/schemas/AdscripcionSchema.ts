@@ -7,7 +7,7 @@ import { Schema, model, Model, Document, Types } from 'mongoose';
 export interface AdscripcionDocument extends Document {
   _id: Types.ObjectId;
   nombre: string;
-  areaId: string;
+  adscripcion: string;
   descripcion?: string;
   isActive: boolean;
   createdAt: Date;
@@ -28,9 +28,13 @@ const AdscripcionSchema = new Schema<AdscripcionDocument>(
       maxlength: 200,
       index: true,
     },
-    areaId: {
+    adscripcion: {
       type: String,
       required: true,
+      trim: true,
+      minlength: 1,
+      maxlength: 500,
+      unique: true,
       index: true,
     },
     descripcion: {
@@ -53,19 +57,12 @@ const AdscripcionSchema = new Schema<AdscripcionDocument>(
   }
 );
 
-// Índice único compuesto: nombre debe ser único dentro del área
-AdscripcionSchema.index(
-  { nombre: 1, areaId: 1 },
-  { unique: true, name: 'nombre_areaId_unique' }
-);
-
-// Índices compuestos para búsquedas comunes
-AdscripcionSchema.index({ areaId: 1, isActive: 1 });
+// Índices para búsquedas comunes
 AdscripcionSchema.index({ isActive: 1, createdAt: -1 });
 
-// Índice de texto para búsqueda full-text (busca en nombre)
+// Índice de texto para búsqueda full-text (busca en nombre y adscripción)
 AdscripcionSchema.index(
-  { nombre: 'text' },
+  { nombre: 'text', adscripcion: 'text' },
   { name: 'adscripcion_text_search' }
 );
 

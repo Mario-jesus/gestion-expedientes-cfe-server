@@ -5,14 +5,14 @@ import { Entity } from '@shared/domain/entities/Entity';
  */
 export interface AdscripcionProps {
   nombre: string;
-  areaId: string;
+  adscripcion: string;
   descripcion?: string | undefined;
   isActive: boolean;
 }
 
 /**
  * Entidad de dominio Adscripcion
- * Representa una adscripción específica dentro de un área
+ * Representa una adscripción (texto libre definido por el usuario)
  * (ej: Central Hidroeléctrica Manuel Moreno Torres)
  */
 export class Adscripcion extends Entity<AdscripcionProps> {
@@ -34,7 +34,7 @@ export class Adscripcion extends Entity<AdscripcionProps> {
   public static create(
     props: {
       nombre: string;
-      areaId: string;
+      adscripcion: string;
       descripcion?: string | undefined;
       isActive: boolean;
     },
@@ -47,13 +47,14 @@ export class Adscripcion extends Entity<AdscripcionProps> {
       throw new Error('El nombre de la adscripción es requerido');
     }
 
-    if (!props.areaId) {
-      throw new Error('El areaId es requerido');
+    const trimmedAdscripcion = props.adscripcion.trim();
+    if (!trimmedAdscripcion) {
+      throw new Error('La adscripción es requerida');
     }
 
     const adscripcionProps: AdscripcionProps = {
       nombre: trimmedNombre,
-      areaId: props.areaId,
+      adscripcion: trimmedAdscripcion,
       descripcion: props.descripcion?.trim() || undefined,
       isActive: props.isActive,
     };
@@ -68,7 +69,7 @@ export class Adscripcion extends Entity<AdscripcionProps> {
   public static fromPersistence(
     props: {
       nombre: string;
-      areaId: string;
+      adscripcion: string;
       descripcion?: string | undefined;
       isActive: boolean;
     },
@@ -78,7 +79,7 @@ export class Adscripcion extends Entity<AdscripcionProps> {
   ): Adscripcion {
     const adscripcionProps: AdscripcionProps = {
       nombre: props.nombre,
-      areaId: props.areaId,
+      adscripcion: props.adscripcion,
       descripcion: props.descripcion || undefined,
       isActive: props.isActive,
     };
@@ -94,8 +95,8 @@ export class Adscripcion extends Entity<AdscripcionProps> {
     return this.props.nombre;
   }
 
-  get areaId(): string {
-    return this.props.areaId;
+  get adscripcion(): string {
+    return this.props.adscripcion;
   }
 
   get descripcion(): string | undefined {
@@ -153,13 +154,14 @@ export class Adscripcion extends Entity<AdscripcionProps> {
   }
 
   /**
-   * Actualiza el área de la adscripción
+   * Actualiza la adscripción
    */
-  updateAreaId(areaId: string): void {
-    if (!areaId) {
-      throw new Error('El areaId es requerido');
+  updateAdscripcion(adscripcion: string): void {
+    const trimmedAdscripcion = adscripcion.trim();
+    if (!trimmedAdscripcion) {
+      throw new Error('La adscripción es requerida');
     }
-    this.props.areaId = areaId;
+    this.props.adscripcion = trimmedAdscripcion;
     this.markAsUpdated();
   }
 
@@ -173,7 +175,7 @@ export class Adscripcion extends Entity<AdscripcionProps> {
   toPersistence(): {
     id: string;
     nombre: string;
-    areaId: string;
+    adscripcion: string;
     descripcion?: string | undefined;
     isActive: boolean;
     createdAt: Date;
@@ -182,7 +184,7 @@ export class Adscripcion extends Entity<AdscripcionProps> {
     return {
       id: this.id,
       nombre: this.props.nombre,
-      areaId: this.props.areaId,
+      adscripcion: this.props.adscripcion,
       descripcion: this.props.descripcion,
       isActive: this.props.isActive,
       createdAt: this.createdAt,
@@ -196,7 +198,7 @@ export class Adscripcion extends Entity<AdscripcionProps> {
   toPublicJSON(): {
     id: string;
     nombre: string;
-    areaId: string;
+    adscripcion: string;
     descripcion?: string | undefined;
     isActive: boolean;
     createdAt: Date;
@@ -205,7 +207,7 @@ export class Adscripcion extends Entity<AdscripcionProps> {
     return {
       id: this.id,
       nombre: this.props.nombre,
-      areaId: this.props.areaId,
+      adscripcion: this.props.adscripcion,
       descripcion: this.props.descripcion,
       isActive: this.props.isActive,
       createdAt: this.createdAt,

@@ -10,17 +10,14 @@ import { container, clearContainer, registerSharedDependencies } from '@shared/i
 import { IDatabase } from '@shared/domain/ports/output/IDatabase';
 import { IUserRepository } from '@modules/users/domain/ports/output/IUserRepository';
 import { IPasswordHasher } from '@modules/users/application/ports/output/IPasswordHasher';
-import { IAreaRepository } from '@modules/catalogs/domain/ports/output/IAreaRepository';
 import { IAdscripcionRepository } from '@modules/catalogs/domain/ports/output/IAdscripcionRepository';
 import { IEventBus, ILogger } from '@shared/domain';
 import { User } from '@modules/users/domain';
 import { UserRole } from '@modules/users/domain/enums/UserRole';
-import { Area } from '@modules/catalogs/domain';
 import { Adscripcion } from '@modules/catalogs/domain';
 import { createTestApp } from '@/__tests__/helpers/createTestApp';
 import { InMemoryUserRepository } from '@/__tests__/mocks/InMemoryUserRepository';
 import { InMemoryRefreshTokenRepository } from '@/__tests__/mocks/InMemoryRefreshTokenRepository';
-import { InMemoryAreaRepository } from '@/__tests__/mocks/InMemoryAreaRepository';
 import { InMemoryAdscripcionRepository } from '@/__tests__/mocks/InMemoryAdscripcionRepository';
 import { asFunction } from 'awilix';
 import { registerUsersModule } from '@modules/users/infrastructure/container';
@@ -32,13 +29,11 @@ describe('Adscripciones E2E Tests', () => {
   let adminUser: User;
   let regularUser: User;
   let userRepository: IUserRepository;
-  let areaRepository: IAreaRepository;
   let adscripcionRepository: IAdscripcionRepository;
   let passwordHasher: IPasswordHasher;
   let database: IDatabase;
   let adminToken: string;
   let regularToken: string;
-  let testArea: Area;
 
   beforeAll(async () => {
     clearContainer();
@@ -66,12 +61,6 @@ describe('Adscripciones E2E Tests', () => {
     });
 
     container.register({
-      areaRepository: asFunction(() => new InMemoryAreaRepository(logger), {
-        lifetime: 'SINGLETON',
-      }),
-    });
-
-    container.register({
       adscripcionRepository: asFunction(() => new InMemoryAdscripcionRepository(logger), {
         lifetime: 'SINGLETON',
       }),
@@ -80,7 +69,6 @@ describe('Adscripciones E2E Tests', () => {
     app = createTestApp(true);
 
     userRepository = container.resolve<IUserRepository>('userRepository');
-    areaRepository = container.resolve<IAreaRepository>('areaRepository');
     adscripcionRepository = container.resolve<IAdscripcionRepository>('adscripcionRepository');
     passwordHasher = container.resolve<IPasswordHasher>('passwordHasher');
 
@@ -105,14 +93,6 @@ describe('Adscripciones E2E Tests', () => {
       isActive: true,
     });
     await userRepository.create(regularUser);
-
-    // Crear área de prueba
-    testArea = Area.create({
-      nombre: 'Área de Prueba',
-      descripcion: 'Área para tests',
-      isActive: true,
-    });
-    await areaRepository.create(testArea);
 
     const adminLoginResponse = await request(app)
       .post('/api/auth/login')
@@ -171,14 +151,14 @@ describe('Adscripciones E2E Tests', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           nombre: 'Adscripción de Prueba',
-          areaId: testArea.id,
+          adscripcion: 'Central Hidroeléctrica Manuel Moreno Torres',
           descripcion: 'Descripción de prueba',
         });
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('id');
       expect(response.body.nombre).toBe('Adscripción de Prueba');
-      expect(response.body.areaId).toBe(testArea.id);
+      expect(response.body.adscripcion).toBe('Central Hidroeléctrica Manuel Moreno Torres');
     });
 
     it('debe retornar 403 cuando un usuario regular intenta crear', async () => {
@@ -187,45 +167,58 @@ describe('Adscripciones E2E Tests', () => {
         .set('Authorization', `Bearer ${regularToken}`)
         .send({
           nombre: 'Adscripción No Autorizada',
-          areaId: testArea.id,
+          adscripcion: 'Texto de adscripción',
         });
 
       expect(response.status).toBe(403);
     });
 
-    it('debe retornar error si el área no existe', async () => {
-      const response = await request(app)
+    it('debe permitir crear adscripciones con el mismo nombre pero diferentes adscripcion', async () => {
+      // Crear primera adscripción
+      const firstResponse = await request(app)
         .post('/api/catalogs/adscripciones')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-          nombre: 'Adscripción con Área Inexistente',
-          areaId: '000000000000000000000000',
+          nombre: 'Zona Ríos',
+          adscripcion: 'Primera adscripción',
         });
 
-      expect([400, 404].includes(response.status)).toBe(true);
-      expect(response.body).toHaveProperty('error');
+      expect(firstResponse.status).toBe(201);
+
+      // Crear otra con el mismo nombre pero diferente adscripcion (debe permitirse)
+      const secondResponse = await request(app)
+        .post('/api/catalogs/adscripciones')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          nombre: 'Zona Ríos',
+          adscripcion: 'Segunda adscripción',
+        });
+
+      expect(secondResponse.status).toBe(201);
+      expect(secondResponse.body.nombre).toBe('Zona Ríos');
+      expect(secondResponse.body.adscripcion).toBe('Segunda adscripción');
     });
 
-    it('debe retornar error si el nombre ya existe en el área', async () => {
+    it('debe retornar error si el valor de adscripcion ya existe', async () => {
       // Crear primera adscripción
       await request(app)
         .post('/api/catalogs/adscripciones')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-          nombre: 'Adscripción Duplicada',
-          areaId: testArea.id,
+          nombre: 'Adscripción 1',
+          adscripcion: 'Valor único de adscripción',
         });
 
-      // Intentar crear otra con el mismo nombre en la misma área
+      // Intentar crear otra con el mismo valor de adscripcion (debe fallar)
       const response = await request(app)
         .post('/api/catalogs/adscripciones')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-          nombre: 'Adscripción Duplicada',
-          areaId: testArea.id,
+          nombre: 'Adscripción 2',
+          adscripcion: 'Valor único de adscripción',
         });
 
-      expect([400, 409].includes(response.status)).toBe(true);
+      expect(response.status).toBe(409);
       expect(response.body).toHaveProperty('error');
     });
   });
@@ -237,7 +230,7 @@ describe('Adscripciones E2E Tests', () => {
 
       const adscripcion1 = Adscripcion.create({
         nombre: 'Adscripción 1',
-        areaId: testArea.id,
+        adscripcion: 'Central Hidroeléctrica 1',
         descripcion: 'Primera adscripción',
         isActive: true,
       });
@@ -245,7 +238,7 @@ describe('Adscripciones E2E Tests', () => {
 
       const adscripcion2 = Adscripcion.create({
         nombre: 'Adscripción 2',
-        areaId: testArea.id,
+        adscripcion: 'Central Hidroeléctrica 2',
         descripcion: 'Segunda adscripción',
         isActive: true,
       });
@@ -261,15 +254,6 @@ describe('Adscripciones E2E Tests', () => {
       expect(response.body).toHaveProperty('data');
       expect(response.body).toHaveProperty('pagination');
       expect(Array.isArray(response.body.data)).toBe(true);
-    });
-
-    it('debe filtrar adscripciones por areaId', async () => {
-      const response = await request(app)
-        .get(`/api/catalogs/adscripciones?areaId=${testArea.id}`)
-        .set('Authorization', `Bearer ${regularToken}`);
-
-      expect(response.status).toBe(200);
-      expect(response.body.data.every((a: any) => a.areaId === testArea.id)).toBe(true);
     });
 
     it('debe filtrar adscripciones por isActive', async () => {
@@ -291,7 +275,7 @@ describe('Adscripciones E2E Tests', () => {
 
       testAdscripcion = Adscripcion.create({
         nombre: 'Adscripción de Prueba',
-        areaId: testArea.id,
+        adscripcion: 'Central de Prueba',
         descripcion: 'Descripción de prueba',
         isActive: true,
       });
@@ -326,7 +310,7 @@ describe('Adscripciones E2E Tests', () => {
 
       testAdscripcion = Adscripcion.create({
         nombre: 'Adscripción Original',
-        areaId: testArea.id,
+        adscripcion: 'Central de Prueba',
         descripcion: 'Descripción original',
         isActive: true,
       });
@@ -339,7 +323,7 @@ describe('Adscripciones E2E Tests', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           nombre: 'Adscripción Actualizada',
-          areaId: testArea.id,
+          adscripcion: 'Central Hidroeléctrica Manuel Moreno Torres',
           descripcion: 'Nueva descripción',
         });
 
@@ -354,10 +338,58 @@ describe('Adscripciones E2E Tests', () => {
         .set('Authorization', `Bearer ${regularToken}`)
         .send({
           nombre: 'Adscripción Actualizada',
-          areaId: testArea.id,
+          adscripcion: 'Central Hidroeléctrica Manuel Moreno Torres',
         });
 
       expect(response.status).toBe(403);
+    });
+
+    it('debe retornar error si se intenta actualizar con un valor de adscripcion que ya existe en otra adscripción', async () => {
+      // Crear otra adscripción con un valor único
+      const otraAdscripcion = Adscripcion.create({
+        nombre: 'Otra Adscripción',
+        adscripcion: 'Valor único de otra adscripción',
+        descripcion: 'Otra descripción',
+        isActive: true,
+      });
+      await adscripcionRepository.create(otraAdscripcion);
+
+      // Intentar actualizar testAdscripcion con el valor de adscripcion que ya existe en otraAdscripcion
+      const response = await request(app)
+        .put(`/api/catalogs/adscripciones/${testAdscripcion.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          nombre: 'Nombre Actualizado',
+          adscripcion: 'Valor único de otra adscripción', // Este valor ya existe
+        });
+
+      expect(response.status).toBe(409);
+      expect(response.body).toHaveProperty('error');
+    });
+
+    it('debe permitir actualizar con el mismo nombre si solo cambia otro campo', async () => {
+      // Crear otra adscripción con el mismo nombre pero diferente adscripcion
+      const otraAdscripcion = Adscripcion.create({
+        nombre: 'Adscripción Original', // Mismo nombre
+        adscripcion: 'Otra Central',
+        descripcion: 'Otra descripción',
+        isActive: true,
+      });
+      await adscripcionRepository.create(otraAdscripcion);
+
+      // Actualizar testAdscripcion manteniendo el mismo nombre pero cambiando descripción
+      const response = await request(app)
+        .put(`/api/catalogs/adscripciones/${testAdscripcion.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          nombre: 'Adscripción Original', // Mismo nombre, debe permitirse
+          adscripcion: 'Central de Prueba', // Mismo adscripcion (sin cambio)
+          descripcion: 'Nueva descripción actualizada',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.nombre).toBe('Adscripción Original');
+      expect(response.body.descripcion).toBe('Nueva descripción actualizada');
     });
   });
 
@@ -370,7 +402,7 @@ describe('Adscripciones E2E Tests', () => {
 
       testAdscripcion = Adscripcion.create({
         nombre: 'Adscripción a Eliminar',
-        areaId: testArea.id,
+        adscripcion: 'Central de Prueba',
         descripcion: 'Esta adscripción será eliminada',
         isActive: true,
       });
@@ -400,7 +432,7 @@ describe('Adscripciones E2E Tests', () => {
 
       testAdscripcion = Adscripcion.create({
         nombre: 'Adscripción Inactiva',
-        areaId: testArea.id,
+        adscripcion: 'Central de Prueba',
         descripcion: 'Adscripción que será activada',
         isActive: false,
       });
@@ -427,7 +459,7 @@ describe('Adscripciones E2E Tests', () => {
 
       testAdscripcion = Adscripcion.create({
         nombre: 'Adscripción Activa',
-        areaId: testArea.id,
+        adscripcion: 'Central de Prueba',
         descripcion: 'Adscripción que será desactivada',
         isActive: true,
       });

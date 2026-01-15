@@ -10,7 +10,6 @@ import { IDeleteAreaUseCase } from '../../ports/input/areas/IDeleteAreaUseCase';
  * 
  * Reglas de negocio:
  * - No se puede eliminar si tiene colaboradores asociados
- * - No se puede eliminar si tiene adscripciones activas
  */
 export class DeleteAreaUseCase implements IDeleteAreaUseCase {
   constructor(
@@ -25,7 +24,7 @@ export class DeleteAreaUseCase implements IDeleteAreaUseCase {
    * @param performedBy - ID del usuario que realiza la acción (opcional)
    * @returns true si se eliminó, false si no existía
    * @throws AreaNotFoundError si el área no existe
-   * @throws AreaInUseError si el área tiene colaboradores o adscripciones asociadas
+   * @throws AreaInUseError si el área tiene colaboradores asociados
    */
   async execute(areaId: string, performedBy?: string): Promise<boolean> {
     this.logger.info('Ejecutando caso de uso: Eliminar área', {
@@ -52,17 +51,6 @@ export class DeleteAreaUseCase implements IDeleteAreaUseCase {
         performedBy,
       });
       throw new AreaInUseError(areaId, 'collaborators');
-    }
-
-    // Verificar si tiene adscripciones activas
-    const adscripcionesCount = await this.areaRepository.countActiveAdscripcionesByAreaId(areaId);
-    if (adscripcionesCount > 0) {
-      this.logger.warn('Intento de eliminar área con adscripciones activas', {
-        targetAreaId: areaId,
-        adscripcionesCount,
-        performedBy,
-      });
-      throw new AreaInUseError(areaId, 'adscripciones');
     }
 
     // Eliminar el área (baja lógica)

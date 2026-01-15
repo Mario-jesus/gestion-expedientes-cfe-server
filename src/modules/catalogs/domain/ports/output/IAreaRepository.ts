@@ -79,11 +79,4 @@ export interface IAreaRepository {
    * @returns Número de colaboradores
    */
   countCollaboratorsByAreaId(areaId: string, isActive?: boolean): Promise<number>;
-
-  /**
-   * Cuenta cuántas adscripciones activas tiene este área
-   * @param areaId - ID del área
-   * @returns Número de adscripciones activas
-   */
-  countActiveAdscripcionesByAreaId(areaId: string): Promise<number>;
 }

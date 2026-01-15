@@ -6,7 +6,6 @@ import { DuplicateAreaError } from '@modules/catalogs/domain/exceptions/Duplicat
 import { AreaModel, AreaDocument } from '../schemas/AreaSchema';
 import { ILogger } from '@shared/domain';
 import { CollaboratorModel } from '@modules/collaborators/infrastructure/adapters/output/database/mongo/schemas/CollaboratorSchema';
-import { AdscripcionModel } from '../schemas/AdscripcionSchema';
 
 /**
  * Implementación del repositorio de áreas usando MongoDB/Mongoose
@@ -275,18 +274,6 @@ export class AreaRepository implements IAreaRepository {
       return await CollaboratorModel.countDocuments(query).exec();
     } catch (error: any) {
       this.logger.error('Error al contar colaboradores por área', error);
-      return 0;
-    }
-  }
-
-  async countActiveAdscripcionesByAreaId(areaId: string): Promise<number> {
-    try {
-      return await AdscripcionModel.countDocuments({
-        areaId,
-        isActive: true,
-      }).exec();
-    } catch (error: any) {
-      this.logger.error('Error al contar adscripciones activas por área', error);
       return 0;
     }
   }

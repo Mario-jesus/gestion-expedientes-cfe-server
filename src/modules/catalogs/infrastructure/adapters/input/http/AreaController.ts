@@ -8,7 +8,6 @@ import { IUpdateAreaUseCase } from '@modules/catalogs/application/ports/input/ar
 import { IDeleteAreaUseCase } from '@modules/catalogs/application/ports/input/areas/IDeleteAreaUseCase';
 import { IActivateAreaUseCase } from '@modules/catalogs/application/ports/input/areas/IActivateAreaUseCase';
 import { IDeactivateAreaUseCase } from '@modules/catalogs/application/ports/input/areas/IDeactivateAreaUseCase';
-import { IAdscripcionRepository } from '@modules/catalogs/domain/ports/output/IAdscripcionRepository';
 import { CreateAreaDTO } from '@modules/catalogs/application/dto/areas/CreateAreaDTO';
 import { UpdateAreaDTO } from '@modules/catalogs/application/dto/areas/UpdateAreaDTO';
 import { ListAreasDTO } from '@modules/catalogs/application/dto/areas/ListAreasDTO';
@@ -25,7 +24,6 @@ export class AreaController {
     private readonly deleteAreaUseCase: IDeleteAreaUseCase,
     private readonly activateAreaUseCase: IActivateAreaUseCase,
     private readonly deactivateAreaUseCase: IDeactivateAreaUseCase,
-    private readonly adscripcionRepository: IAdscripcionRepository,
     private readonly logger: ILogger
   ) {}
 
@@ -78,45 +76,6 @@ export class AreaController {
       const area = await this.getAreaByIdUseCase.execute(id);
 
       res.status(200).json(area.toPublicJSON());
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
-   * GET /areas/:id/adscripciones
-   * Obtiene todas las adscripciones de un área específica
-   * Requiere autenticación
-   */
-  async getAdscripciones(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const areaId = req.params.id as string;
-
-      // Validar que el área existe
-      await this.getAreaByIdUseCase.execute(areaId);
-
-      // Extraer filtro opcional de isActive
-      const isActive = req.query.isActive !== undefined 
-        ? req.query.isActive === 'true' 
-        : undefined;
-
-      this.logger.debug('Obteniendo adscripciones del área', {
-        areaId,
-        isActive,
-        ip: req.ip,
-        userAgent: req.get('user-agent'),
-      });
-
-      const adscripciones = await this.adscripcionRepository.findByAreaId(areaId, isActive);
-
-      this.logger.debug('Adscripciones obtenidas exitosamente', {
-        areaId,
-        total: adscripciones.length,
-      });
-
-      res.status(200).json({
-        data: adscripciones.map((adscripcion) => adscripcion.toPublicJSON()),
-      });
     } catch (error) {
       next(error);
     }

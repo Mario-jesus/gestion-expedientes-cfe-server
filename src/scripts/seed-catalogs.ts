@@ -33,9 +33,6 @@ const SKIP_AREAS = process.env.SEED_CATALOGS_SKIP_AREAS === 'true';
 const SKIP_ADSCRIPCIONES = process.env.SEED_CATALOGS_SKIP_ADSCRIPCIONES === 'true';
 const SKIP_PUESTOS = process.env.SEED_CATALOGS_SKIP_PUESTOS === 'true';
 
-// Nombre de la adscripción a crear para todas las áreas
-const ADSCRIPCION_NOMBRE = 'Zona Ríos';
-
 // Datos de Áreas
 const AREAS_DATA = [
   {
@@ -76,55 +73,89 @@ const AREAS_DATA = [
   },
 ];
 
-// Datos de Puestos
-const PUESTOS_DATA = [
+// Datos de Adscripciones
+// NOTA: Todas las adscripciones tienen nombre "Zona Ríos".
+// El campo 'adscripcion' es único y contiene el valor específico para cada una.
+const ADSCRIPCIONES_DATA = [
   {
-    nombre: 'Liniero Comercial',
-    descripcion: 'Ejecutar con calidad, oportunidad y precisión las actividades de campo con impacto en la gestión comercial de la EPS Distribución, en el marco de la normatividad, la seguridad y salud en el trabajo, coadyuvando a la rentabilidad del proceso de servicios comerciale',
+    nombre: 'Zona Ríos',
+    adscripcion: 'Area benemérito',
+    descripcion: 'Área Benemérito de la Zona Ríos',
   },
   {
-    nombre: 'Liniero Encargado LV RGD',
-    descripcion: 'Planear, organizar, supervisar, dirigir y ejecutar las actividades de puesta en servicio, operación y mantenimiento en Líneas Energizadas y Desenergizadas en conjunto con el liniero LV, así como, las maniobras de apoyo de operación y mantenimiento en subestaciones y líneas de alta tensión de Distribución, a fin de contribuir al suministro de energía eléctrica en condiciones de seguridad del personal, eficiencia, calidad, confiabilidad, continuidad y sustentabilidad de la RGD.',
+    nombre: 'Zona Ríos',
+    adscripcion: 'Agencia benemérita',
+    descripcion: 'Agencia Benemérita de la Zona Ríos',
   },
   {
-    nombre: 'Liniero LV RGD',
-    descripcion: 'Planear, organizar, revisar y ejecutar las actividades de puesta en servicio, operación y mantenimiento en Líneas Energizadas y Desenergizadas, así como las maniobras de apoyo de operación y mantenimiento en subestaciones y líneas de Alta tensión de Distribución, a fin de contribuir al suministro de energía eléctrica en condiciones de seguridad del personal, eficiencia, calidad, confiabilidad, continuidad y sustentabilidad de la RGD.',
+    nombre: 'Zona Ríos',
+    adscripcion: 'Área palenque',
+    descripcion: 'Área Palenque de la Zona Ríos',
   },
   {
-    nombre: 'Ayudante Liniero',
-    descripcion: 'En coordinación con el liniero responsable planear, ejecutar y verificar con seguridad y responsabilidad las actividades de restablecimiento y conexión del suministro de energía eléctrica en baja y media tensión, apegadas a los procedimientos del Sistema Integral de Gestión con el fin de garantizar la continuidad del servicio al cliente.',
+    nombre: 'Zona Ríos',
+    adscripcion: 'Agencia palenque',
+    descripcion: 'Agencia Palenque de la Zona Ríos',
   },
   {
-    nombre: 'Verificador Calibrador I',
-    descripcion: 'Realizar la revisión, prueba, aseguramiento y calibración de equipos de medición, instalar servicios en baja tensión, así como elaborar reportes de resultados de sus actividades y manejar vehículos automotores.',
+    nombre: 'Zona Ríos',
+    adscripcion: 'Agencia DC.pemex',
+    descripcion: 'Agencia DC PEMEX de la Zona Ríos',
   },
   {
-    nombre: 'Sobrestante RGD',
-    descripcion: 'Planear, organizar, coordinar, supervisar, dirigir y ejecutar las actividades de construcción, puesta en servicio, operación y mantenimiento en redes energizadas y desenergizadas en la Red General de Distribución (RGD), así como las maniobras de apoyo de operación y mantenimiento en subestaciones y líneas de alta tensión de distribución, en el ámbito de su responsabilidad, a fin de contribuir al suministro de energía eléctrica en condiciones de seguridad del personal, eficiencia, calidad, confiabilidad, continuidad y sustentabilidad de la RGD.',
+    nombre: 'Zona Ríos',
+    adscripcion: 'Area Macuspana',
+    descripcion: 'Área Macuspana de la Zona Ríos',
   },
   {
-    nombre: 'Técnico de Distribución',
-    descripcion: 'Efectuar acciones relacionadas con la operación y mantenimiento del sistema eléctrico, así como la elaboración y actualización de la información estadística del área de distribución, para garantizar el suministro de energía eléctrica con parámetros de calidad.',
+    nombre: 'Zona Ríos',
+    adscripcion: 'Agencia Macuspana',
+    descripcion: 'Agencia Macuspana de la Zona Ríos',
   },
   {
-    nombre: 'Tecnico de Control',
-    descripcion: 'Mantener los equipos, instalaciones y sistemas de control supervisorio y automatismo, as como la red de transmisión de datos requeridos para este fin en óptimas condiciones de operación, cumpliendo los indicadores de disponibilidad y confiabilidad establecidos en la zona.',
+    nombre: 'Zona Ríos',
+    adscripcion: 'CCC Macuspana',
+    descripcion: 'CCC Macuspana de la Zona Ríos',
   },
   {
-    nombre: 'Técnico de Comunicaciones',
-    descripcion: 'Mantener los equipos e instalaciones de la red de datos, telefonía, videoconferencia y radiocomunicación en óptimas condiciones de operación cumpliendo con los indicadores de disponibilidad y confiabilidad establecidos en la zona.',
+    nombre: 'Zona Ríos',
+    adscripcion: 'Medición Macuspana',
+    descripcion: 'Medición Macuspana de la Zona Ríos',
   },
   {
-    nombre: 'Técnico de Protecciones',
-    descripcion: 'Operar y mantener los esquemas de control, protección y medición instaldos en os tableros de control, protección y medición de las subestaciones reductoras de distribución',
+    nombre: 'Zona Ríos',
+    adscripcion: 'Líneas',
+    descripcion: 'Líneas de la Zona Ríos',
   },
   {
-    nombre: 'Técnico de Subestaciones',
-    descripcion: 'Ejecutar el mantenimiento, reparación y operación del equipo eléctrico instalado en las subestaciones reductoras de distribución para asegurar una operación confiable dentro de los parámetros establecidos por la C.F.E. para estos propósitos',
+    nombre: 'Zona Ríos',
+    adscripcion: 'Medición',
+    descripcion: 'Medición de la Zona Ríos',
   },
   {
-    nombre: 'Técnico de Zona',
-    descripcion: 'Efectuar acciones relacionadas con la operación y mantenimiento del sistema eléctrico, así como la elaboración y actualización de la información estadística del área del área de distribución para garantizar el suministro de energía eléctrica con parámetros de calidad',
+    nombre: 'Zona Ríos',
+    adscripcion: 'Área Tenosique A',
+    descripcion: 'Área Tenosique A de la Zona Ríos',
+  },
+  {
+    nombre: 'Zona Ríos',
+    adscripcion: 'Agencia Tenosique',
+    descripcion: 'Agencia Tenosique de la Zona Ríos',
+  },
+  {
+    nombre: 'Zona Ríos',
+    adscripcion: 'Agencia Balancán',
+    descripcion: 'Agencia Balancán de la Zona Ríos',
+  },
+  {
+    nombre: 'Zona Ríos',
+    adscripcion: 'Área palizada',
+    descripcion: 'Área Palizada de la Zona Ríos',
+  },
+  {
+    nombre: 'Zona Ríos',
+    adscripcion: 'Agencia palizada',
+    descripcion: 'Agencia Palizada de la Zona Ríos',
   },
 ];
 
@@ -181,12 +212,62 @@ async function seedAreas(
   });
 }
 
+// Datos de Puestos
+const PUESTOS_DATA = [
+  {
+    nombre: 'Liniero Comercial',
+    descripcion: 'Ejecutar con calidad, oportunidad y precisión las actividades de campo con impacto en la gestión comercial de la EPS Distribución, en el marco de la normatividad, la seguridad y salud en el trabajo, coadyuvando a la rentabilidad del proceso de servicios comerciale',
+  },
+  {
+    nombre: 'Liniero Encargado LV RGD',
+    descripcion: 'Planear, organizar, supervisar, dirigir y ejecutar las actividades de puesta en servicio, operación y mantenimiento en Líneas Energizadas y Desenergizadas en conjunto con el liniero LV, así como, las maniobras de apoyo de operación y mantenimiento en subestaciones y líneas de alta tensión de Distribución, a fin de contribuir al suministro de energía eléctrica en condiciones de seguridad del personal, eficiencia, calidad, confiabilidad, continuidad y sustentabilidad de la RGD.',
+  },
+  {
+    nombre: 'Liniero LV RGD',
+    descripcion: 'Planear, organizar, revisar y ejecutar las actividades de puesta en servicio, operación y mantenimiento en Líneas Energizadas y Desenergizadas, así como las maniobras de apoyo de operación y mantenimiento en subestaciones y líneas de Alta tensión de Distribución, a fin de contribuir al suministro de energía eléctrica en condiciones de seguridad del personal, eficiencia, calidad, confiabilidad, continuidad y sustentabilidad de la RGD.',
+  },
+  {
+    nombre: 'Ayudante Liniero',
+    descripcion: 'En coordinación con el liniero responsable planear, ejecutar y verificar con seguridad y responsabilidad las actividades de restablecimiento y conexión del suministro de energía eléctrica en baja y media tensión, apegadas a los procedimientos del Sistema Integral de Gestión con el fin de garantizar la continuidad del servicio al cliente.',
+  },
+  {
+    nombre: 'Verificador Calibrador I',
+    descripcion: 'Realizar la revisión, prueba, aseguramiento y calibración de equipos de medición, instalar servicios en baja tensión, así como elaborar reportes de resultados de sus actividades y manejar vehículos automotores.',
+  },
+  {
+    nombre: 'Sobrestante RGD',
+    descripcion: 'Planear, organizar, coordinar, supervisar, dirigir y ejecutar las actividades de construcción, puesta en servicio, operación y mantenimiento en redes energizadas y desenergizadas en la Red General de Distribución (RGD), así como las maniobras de apoyo de operación y mantenimiento en subestaciones y líneas de alta tensión de distribución, en el ámbito de su responsabilidad, a fin de contribuir al suministro de energía eléctrica en condiciones de seguridad del personal, eficiencia, calidad, confiabilidad, continuidad y sustentabilidad de la RGD.',
+  },
+  {
+    nombre: 'Técnico de Distribución',
+    descripcion: 'Efectuar acciones relacionadas con la operación y mantenimiento del sistema eléctrico, así como la elaboración y actualización de la información estadística del área de distribución, para garantizar el suministro de energía eléctrica con parámetros de calidad.',
+  },
+  {
+    nombre: 'Tecnico de Control',
+    descripcion: 'Mantener los equipos, instalaciones y sistemas de control supervisorio y automatismo, as como la red de transmisión de datos requeridos para este fin en óptimas condiciones de operación, cumpliendo los indicadores de disponibilidad y confiabilidad establecidos en la zona.',
+  },
+  {
+    nombre: 'Técnico de Comunicaciones',
+    descripcion: 'Mantener los equipos e instalaciones de la red de datos, telefonía, videoconferencia y radiocomunicación en óptimas condiciones de operación cumpliendo con los indicadores de disponibilidad y confiabilidad establecidos en la zona.',
+  },
+  {
+    nombre: 'Técnico de Protecciones',
+    descripcion: 'Operar y mantener los esquemas de control, protección y medición instaldos en os tableros de control, protección y medición de las subestaciones reductoras de distribución',
+  },
+  {
+    nombre: 'Técnico de Subestaciones',
+    descripcion: 'Ejecutar el mantenimiento, reparación y operación del equipo eléctrico instalado en las subestaciones reductoras de distribución para asegurar una operación confiable dentro de los parámetros establecidos por la C.F.E. para estos propósitos',
+  },
+  {
+    nombre: 'Técnico de Zona',
+    descripcion: 'Efectuar acciones relacionadas con la operación y mantenimiento del sistema eléctrico, así como la elaboración y actualización de la información estadística del área del área de distribución para garantizar el suministro de energía eléctrica con parámetros de calidad',
+  },
+];
+
 /**
  * Función para crear adscripciones
- * Crea la adscripción "Zona Ríos" para todas las áreas existentes
  */
 async function seedAdscripciones(
-  areaRepository: IAreaRepository,
   adscripcionRepository: IAdscripcionRepository,
   logger: ILogger
 ): Promise<void> {
@@ -196,71 +277,45 @@ async function seedAdscripciones(
   let skippedCount = 0;
   let errorCount = 0;
 
-  try {
-    // Obtener todas las áreas activas
-    const { areas } = await areaRepository.findAll(
-      { isActive: true },
-      1000, // Límite alto para obtener todas las áreas
-      0
-    );
+  for (const adscripcionData of ADSCRIPCIONES_DATA) {
+    try {
+      // Verificar si la adscripción ya existe (por valor de adscripcion, que es único)
+      const existingAdscripcion = await adscripcionRepository.findByAdscripcion(adscripcionData.adscripcion);
 
-    if (areas.length === 0) {
-      logger.warn('No se encontraron áreas activas. No se pueden crear adscripciones.');
-      return;
-    }
-
-    logger.info(`Se encontraron ${areas.length} áreas activas. Creando adscripción "${ADSCRIPCION_NOMBRE}" para cada una...`);
-
-    for (const area of areas) {
-      try {
-        // Verificar si la adscripción ya existe para esta área
-        const existingAdscripcion = await adscripcionRepository.findByNombreAndAreaId(
-          ADSCRIPCION_NOMBRE,
-          area.id
-        );
-
-        if (existingAdscripcion) {
-          logger.debug(`Adscripción "${ADSCRIPCION_NOMBRE}" ya existe para el área "${area.nombre}", saltando...`);
-          skippedCount++;
-          continue;
-        }
-
-        // Crear la entidad Adscripcion
-        const adscripcion = Adscripcion.create({
-          nombre: ADSCRIPCION_NOMBRE,
-          areaId: area.id,
-          descripcion: `Adscripción ${ADSCRIPCION_NOMBRE} del área ${area.nombre}`,
-          isActive: true,
-        });
-
-        // Persistir la adscripción
-        await adscripcionRepository.create(adscripcion);
-        logger.info(`✅ Adscripción "${ADSCRIPCION_NOMBRE}" creada para el área: ${area.nombre}`);
-        createdCount++;
-      } catch (error: any) {
-        errorCount++;
-        const errorObj = error instanceof Error ? error : new Error(String(error));
-        logger.error(`❌ Error al crear adscripción "${ADSCRIPCION_NOMBRE}" para el área "${area.nombre}"`, errorObj, {
-          areaId: area.id,
-          areaNombre: area.nombre,
-          message: error.message,
-        });
+      if (existingAdscripcion) {
+        logger.debug(`Adscripción con valor "${adscripcionData.adscripcion}" ya existe, saltando...`);
+        skippedCount++;
+        continue;
       }
-    }
 
-    logger.info('Seed de adscripciones completado', {
-      totalAreas: areas.length,
-      creadas: createdCount,
-      saltadas: skippedCount,
-      errores: errorCount,
-    });
-  } catch (error: any) {
-    const errorObj = error instanceof Error ? error : new Error(String(error));
-    logger.error('❌ Error al obtener áreas para crear adscripciones', errorObj, {
-      message: error.message,
-    });
-    throw error;
+      // Crear la entidad Adscripcion
+      const adscripcion = Adscripcion.create({
+        nombre: adscripcionData.nombre,
+        adscripcion: adscripcionData.adscripcion,
+        descripcion: adscripcionData.descripcion,
+        isActive: true,
+      });
+
+      // Persistir la adscripción
+      await adscripcionRepository.create(adscripcion);
+      logger.info(`✅ Adscripción creada: ${adscripcionData.nombre}`);
+      createdCount++;
+    } catch (error: any) {
+      errorCount++;
+      const errorObj = error instanceof Error ? error : new Error(String(error));
+      logger.error(`❌ Error al crear adscripción "${adscripcionData.nombre}"`, errorObj, {
+        nombre: adscripcionData.nombre,
+        message: error.message,
+      });
+    }
   }
+
+  logger.info('Seed de adscripciones completado', {
+    total: ADSCRIPCIONES_DATA.length,
+    creadas: createdCount,
+    saltadas: skippedCount,
+    errores: errorCount,
+  });
 }
 
 /**
@@ -346,9 +401,9 @@ async function seedCatalogs(): Promise<void> {
       logger.info('⏭️  Saltando seed de áreas (SEED_CATALOGS_SKIP_AREAS=true)');
     }
 
-    // Seed de adscripciones (requiere que existan áreas)
+    // Seed de adscripciones
     if (!SKIP_ADSCRIPCIONES) {
-      await seedAdscripciones(areaRepository, adscripcionRepository, logger);
+      await seedAdscripciones(adscripcionRepository, logger);
     } else {
       logger.info('⏭️  Saltando seed de adscripciones (SEED_CATALOGS_SKIP_ADSCRIPCIONES=true)');
     }
@@ -367,7 +422,7 @@ async function seedCatalogs(): Promise<void> {
       console.log(`Áreas: ${AREAS_DATA.length} definidas`);
     }
     if (!SKIP_ADSCRIPCIONES) {
-      console.log(`Adscripciones: "${ADSCRIPCION_NOMBRE}" creada para todas las áreas`);
+      console.log(`Adscripciones: ${ADSCRIPCIONES_DATA.length} definidas`);
     }
     if (!SKIP_PUESTOS) {
       console.log(`Puestos: ${PUESTOS_DATA.length} definidos`);

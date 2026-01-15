@@ -15,17 +15,14 @@ import { IDatabase } from '@shared/domain/ports/output/IDatabase';
 import { IUserRepository } from '@modules/users/domain/ports/output/IUserRepository';
 import { IPasswordHasher } from '@modules/users/application/ports/output/IPasswordHasher';
 import { IAreaRepository } from '@modules/catalogs/domain/ports/output/IAreaRepository';
-import { IAdscripcionRepository } from '@modules/catalogs/domain/ports/output/IAdscripcionRepository';
 import { IEventBus, ILogger } from '@shared/domain';
 import { User } from '@modules/users/domain';
 import { UserRole } from '@modules/users/domain/enums/UserRole';
 import { Area } from '@modules/catalogs/domain';
-import { Adscripcion } from '@modules/catalogs/domain';
 import { createTestApp } from '@/__tests__/helpers/createTestApp';
 import { InMemoryUserRepository } from '@/__tests__/mocks/InMemoryUserRepository';
 import { InMemoryRefreshTokenRepository } from '@/__tests__/mocks/InMemoryRefreshTokenRepository';
 import { InMemoryAreaRepository } from '@/__tests__/mocks/InMemoryAreaRepository';
-import { InMemoryAdscripcionRepository } from '@/__tests__/mocks/InMemoryAdscripcionRepository';
 import { asFunction } from 'awilix';
 import { registerUsersModule } from '@modules/users/infrastructure/container';
 import { registerAuthModule } from '@modules/auth/infrastructure/container';
@@ -37,7 +34,6 @@ describe('Areas E2E Tests', () => {
   let regularUser: User;
   let userRepository: IUserRepository;
   let areaRepository: IAreaRepository;
-  let adscripcionRepository: IAdscripcionRepository;
   let passwordHasher: IPasswordHasher;
   let database: IDatabase;
   let adminToken: string;
@@ -81,19 +77,12 @@ describe('Areas E2E Tests', () => {
       }),
     });
 
-    container.register({
-      adscripcionRepository: asFunction(() => new InMemoryAdscripcionRepository(logger), {
-        lifetime: 'SINGLETON',
-      }),
-    });
-
     // Crear la aplicación Express para tests
     app = createTestApp(true);
 
     // Resolver dependencias
     userRepository = container.resolve<IUserRepository>('userRepository');
     areaRepository = container.resolve<IAreaRepository>('areaRepository');
-    adscripcionRepository = container.resolve<IAdscripcionRepository>('adscripcionRepository');
     passwordHasher = container.resolve<IPasswordHasher>('passwordHasher');
 
     // Crear usuario administrador de prueba
@@ -353,138 +342,6 @@ describe('Areas E2E Tests', () => {
       const response = await request(app).get(`/api/catalogs/areas/${testArea.id}`);
 
       expect(response.status).toBe(401);
-    });
-  });
-
-  describe('GET /api/catalogs/areas/:id/adscripciones', () => {
-    let testArea: Area;
-
-    beforeEach(async () => {
-      // Limpiar repositorios antes de cada test
-      const areaRepo = container.resolve<IAreaRepository>('areaRepository') as InMemoryAreaRepository;
-      const adscripcionRepo = container.resolve<IAdscripcionRepository>('adscripcionRepository') as InMemoryAdscripcionRepository;
-      areaRepo.clear();
-      adscripcionRepo.clear();
-
-      // Crear un área de prueba
-      testArea = Area.create({
-        nombre: 'Área de Prueba',
-        descripcion: 'Descripción de prueba',
-        isActive: true,
-      });
-      await areaRepository.create(testArea);
-
-      // Crear algunas adscripciones para el área
-      const adscripcion1 = Adscripcion.create({
-        nombre: 'Adscripción 1',
-        areaId: testArea.id,
-        descripcion: 'Primera adscripción',
-        isActive: true,
-      });
-      await adscripcionRepository.create(adscripcion1);
-
-      const adscripcion2 = Adscripcion.create({
-        nombre: 'Adscripción 2',
-        areaId: testArea.id,
-        descripcion: 'Segunda adscripción',
-        isActive: true,
-      });
-      await adscripcionRepository.create(adscripcion2);
-
-      const adscripcion3 = Adscripcion.create({
-        nombre: 'Adscripción 3',
-        areaId: testArea.id,
-        descripcion: 'Tercera adscripción',
-        isActive: false, // Inactiva
-      });
-      await adscripcionRepository.create(adscripcion3);
-    });
-
-    it('debe obtener todas las adscripciones de un área', async () => {
-      const response = await request(app)
-        .get(`/api/catalogs/areas/${testArea.id}/adscripciones`)
-        .set('Authorization', `Bearer ${regularToken}`);
-
-      expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('data');
-      expect(Array.isArray(response.body.data)).toBe(true);
-      expect(response.body.data.length).toBe(3);
-      expect(response.body.data.every((a: any) => a.areaId === testArea.id)).toBe(true);
-    });
-
-    it('debe filtrar adscripciones por isActive=true', async () => {
-      const response = await request(app)
-        .get(`/api/catalogs/areas/${testArea.id}/adscripciones?isActive=true`)
-        .set('Authorization', `Bearer ${regularToken}`);
-
-      expect(response.status).toBe(200);
-      expect(response.body.data.length).toBe(2);
-      expect(response.body.data.every((a: any) => a.isActive === true)).toBe(true);
-    });
-
-    it('debe filtrar adscripciones por isActive=false', async () => {
-      const response = await request(app)
-        .get(`/api/catalogs/areas/${testArea.id}/adscripciones?isActive=false`)
-        .set('Authorization', `Bearer ${regularToken}`);
-
-      expect(response.status).toBe(200);
-      expect(response.body.data.length).toBe(1);
-      expect(response.body.data[0].isActive).toBe(false);
-    });
-
-    it('debe retornar 404 si el área no existe', async () => {
-      const response = await request(app)
-        .get('/api/catalogs/areas/non-existent-id/adscripciones')
-        .set('Authorization', `Bearer ${regularToken}`);
-
-      expect(response.status).toBe(404);
-      expect(response.body).toHaveProperty('error');
-    });
-
-    it('debe retornar array vacío si el área no tiene adscripciones', async () => {
-      // Crear un área sin adscripciones
-      const areaSinAdscripciones = Area.create({
-        nombre: 'Área Sin Adscripciones',
-        descripcion: 'Área sin adscripciones',
-        isActive: true,
-      });
-      await areaRepository.create(areaSinAdscripciones);
-
-      const response = await request(app)
-        .get(`/api/catalogs/areas/${areaSinAdscripciones.id}/adscripciones`)
-        .set('Authorization', `Bearer ${regularToken}`);
-
-      expect(response.status).toBe(200);
-      expect(response.body.data).toEqual([]);
-    });
-
-    it('debe retornar 401 sin token', async () => {
-      const response = await request(app)
-        .get(`/api/catalogs/areas/${testArea.id}/adscripciones`);
-
-      expect(response.status).toBe(401);
-    });
-
-    it('debe retornar 401 con token inválido', async () => {
-      const response = await request(app)
-        .get(`/api/catalogs/areas/${testArea.id}/adscripciones`)
-        .set('Authorization', 'Bearer invalid-token');
-
-      expect(response.status).toBe(401);
-    });
-
-    it('debe funcionar para usuarios regulares y administradores', async () => {
-      const regularResponse = await request(app)
-        .get(`/api/catalogs/areas/${testArea.id}/adscripciones`)
-        .set('Authorization', `Bearer ${regularToken}`);
-
-      const adminResponse = await request(app)
-        .get(`/api/catalogs/areas/${testArea.id}/adscripciones`)
-        .set('Authorization', `Bearer ${adminToken}`);
-
-      expect(regularResponse.status).toBe(200);
-      expect(adminResponse.status).toBe(200);
-      expect(regularResponse.body.data.length).toBe(adminResponse.body.data.length);
     });
   });
 
