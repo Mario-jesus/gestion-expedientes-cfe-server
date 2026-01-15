@@ -56,7 +56,7 @@ export function createDocumentRoutes(
    *                 example: 507f1f77bcf86cd799439011
    *               kind:
    *                 type: string
-   *                 enum: [bateria, historial, perfil, constancia, otro]
+   *                 enum: [bateria, historial, perfil, constancia, c0_03, otro]
    *                 description: Tipo principal del documento
    *                 example: bateria
    *               periodo:

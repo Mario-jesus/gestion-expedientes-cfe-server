@@ -350,8 +350,11 @@ export class CollaboratorController {
         }
       }
 
+      // Por defecto solo documentos activos, a menos que se especifique explícitamente isActive=false
       if (req.query.isActive !== undefined) {
         filters.isActive = req.query.isActive === 'true';
+      } else {
+        filters.isActive = true; // Por defecto solo documentos activos
       }
 
       this.logger.debug('Obteniendo documentos del colaborador', {

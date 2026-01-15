@@ -989,7 +989,7 @@ describe('Collaborators E2E Tests', () => {
       await documentRepository.create(document3);
     });
 
-    it('debe obtener todos los documentos de un colaborador', async () => {
+    it('debe obtener solo los documentos activos de un colaborador por defecto', async () => {
       const response = await request(app)
         .get(`/api/collaborators/${createdCollaboratorId}/documents`)
         .set('Authorization', `Bearer ${adminToken}`);
@@ -998,9 +998,23 @@ describe('Collaborators E2E Tests', () => {
       expect(response.body).toHaveProperty('data');
       expect(response.body).toHaveProperty('total');
       expect(Array.isArray(response.body.data)).toBe(true);
-      expect(response.body.total).toBe(3);
-      expect(response.body.data.length).toBe(3);
+      // Por defecto solo retorna documentos activos
+      expect(response.body.total).toBe(2);
+      expect(response.body.data.length).toBe(2);
       expect(response.body.data.every((doc: any) => doc.collaboratorId === createdCollaboratorId)).toBe(true);
+      expect(response.body.data.every((doc: any) => doc.isActive === true)).toBe(true);
+    });
+
+    it('debe validar que no se envíen documentos inactivos por defecto', async () => {
+      const response = await request(app)
+        .get(`/api/collaborators/${createdCollaboratorId}/documents`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      // Verificar que no hay documentos inactivos en la respuesta
+      expect(response.body.data.every((doc: any) => doc.isActive === true)).toBe(true);
+      // Verificar que no se incluye el documento inactivo creado en beforeEach
+      expect(response.body.data.some((doc: any) => doc.kind === DocumentKind.CONSTANCIA && doc.isActive === false)).toBe(false);
     });
 
     it('debe filtrar documentos por kind', async () => {

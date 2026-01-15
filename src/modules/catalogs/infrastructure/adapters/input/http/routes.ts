@@ -921,7 +921,7 @@ export function createCatalogRoutes(
    *         name: kind
    *         schema:
    *           type: string
-   *           enum: [bateria, historial, perfil, constancia, otro]
+   *           enum: [bateria, historial, perfil, constancia, c0_03, otro]
    *         description: Filtrar por tipo principal
    *       - in: query
    *         name: isActive
@@ -957,7 +957,7 @@ export function createCatalogRoutes(
    *                         type: string
    *                       kind:
    *                         type: string
-   *                         enum: [bateria, historial, perfil, constancia, otro]
+   *                         enum: [bateria, historial, perfil, constancia, c0_03, otro]
    *                       descripcion:
    *                         type: string
    *                       isActive:

@@ -495,7 +495,7 @@ export function createCollaboratorRoutes(
    *         name: kind
    *         schema:
    *           type: string
-   *           enum: [bateria, historial, perfil, constancia, otro]
+   *           enum: [bateria, historial, perfil, constancia, c0_03, otro]
    *         description: Filtrar por tipo de documento
    *       - in: query
    *         name: isActive
