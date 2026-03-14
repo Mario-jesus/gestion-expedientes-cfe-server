@@ -121,16 +121,14 @@ CollaboratorDocumentSchema.index({ collaboratorId: 1, kind: 1, periodo: 1 });
 // Índice para ordenamiento por fecha de subida
 CollaboratorDocumentSchema.index({ uploadedAt: -1 });
 
-// Índice compuesto para validar duplicados (colaborador + kind + activo)
-// Útil para validar que no haya duplicados de batería o perfil
+// Índice compuesto para consultas por colaborador, tipo y estado
 // Nota: Este índice incluye los campos que ya tienen índices individuales,
 // pero es necesario para consultas compuestas eficientes
 CollaboratorDocumentSchema.index(
   { collaboratorId: 1, kind: 1, isActive: 1 },
   {
-    unique: false, // No único porque puede haber múltiples documentos del mismo tipo
-    partialFilterExpression: { isActive: true }, // Solo aplicar a documentos activos
-    name: 'collaborator_kind_active_idx', // Nombre explícito para evitar duplicados
+    partialFilterExpression: { isActive: true },
+    name: 'collaborator_kind_active_idx',
   }
 );
 

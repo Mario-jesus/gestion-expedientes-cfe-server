@@ -321,12 +321,14 @@ describe('Documents E2E Tests', () => {
       expect(response.body).toHaveProperty('error');
     });
 
-    it('debe retornar 409 si se intenta crear un documento duplicado (batería)', async () => {
+    it('debe permitir crear múltiples documentos de tipo batería y perfil para el mismo colaborador', async () => {
       const fileContent1 = Buffer.from('Primera batería');
       const fileContent2 = Buffer.from('Segunda batería');
+      const fileContent3 = Buffer.from('Primer perfil');
+      const fileContent4 = Buffer.from('Segundo perfil');
 
       // Crear primera batería
-      await request(app)
+      const res1 = await request(app)
         .post('/api/documents')
         .set('Authorization', `Bearer ${adminToken}`)
         .field('collaboratorId', testCollaborator.id)
@@ -336,8 +338,8 @@ describe('Documents E2E Tests', () => {
           contentType: 'application/pdf',
         });
 
-      // Intentar crear segunda batería (debe fallar)
-      const response = await request(app)
+      // Crear segunda batería (debe tener éxito)
+      const res2 = await request(app)
         .post('/api/documents')
         .set('Authorization', `Bearer ${adminToken}`)
         .field('collaboratorId', testCollaborator.id)
@@ -347,9 +349,301 @@ describe('Documents E2E Tests', () => {
           contentType: 'application/pdf',
         });
 
-      expect(response.status).toBe(409);
-      expect(response.body).toHaveProperty('error');
-      expect(response.body.code).toBe('DUPLICATE_DOCUMENT');
+      // Crear primer perfil
+      const res3 = await request(app)
+        .post('/api/documents')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .field('collaboratorId', testCollaborator.id)
+        .field('kind', DocumentKind.PERFIL)
+        .attach('file', fileContent3, {
+          filename: 'perfil1.pdf',
+          contentType: 'application/pdf',
+        });
+
+      // Crear segundo perfil (debe tener éxito)
+      const res4 = await request(app)
+        .post('/api/documents')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .field('collaboratorId', testCollaborator.id)
+        .field('kind', DocumentKind.PERFIL)
+        .attach('file', fileContent4, {
+          filename: 'perfil2.pdf',
+          contentType: 'application/pdf',
+        });
+
+      expect(res1.status).toBe(201);
+      expect(res2.status).toBe(201);
+      expect(res3.status).toBe(201);
+      expect(res4.status).toBe(201);
+      expect(res1.body.id).not.toBe(res2.body.id);
+      expect(res3.body.id).not.toBe(res4.body.id);
+
+      // Verificar que se listan los 4 documentos del colaborador
+      const listResponse = await request(app)
+        .get(`/api/documents?collaboratorId=${testCollaborator.id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      const baterias = listResponse.body.data.filter((d: { kind: string }) => d.kind === DocumentKind.BATERIA);
+      const perfiles = listResponse.body.data.filter((d: { kind: string }) => d.kind === DocumentKind.PERFIL);
+      expect(baterias.length).toBeGreaterThanOrEqual(2);
+      expect(perfiles.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  describe('Múltiples documentos por tipo (batería y perfil)', () => {
+    beforeEach(async () => {
+      (documentRepository as any).clear();
+    });
+
+    it('debe listar correctamente múltiples baterías y perfiles con metadatos distintos', async () => {
+      const fileContent = Buffer.from('Contenido de prueba');
+      await request(app)
+        .post('/api/documents')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .field('collaboratorId', testCollaborator.id)
+        .field('kind', DocumentKind.BATERIA)
+        .field('periodo', '2024-Q1')
+        .field('descripcion', 'Batería evaluación Q1')
+        .attach('file', fileContent, { filename: 'bateria1.pdf', contentType: 'application/pdf' });
+
+      await request(app)
+        .post('/api/documents')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .field('collaboratorId', testCollaborator.id)
+        .field('kind', DocumentKind.BATERIA)
+        .field('periodo', '2024-Q2')
+        .field('descripcion', 'Batería evaluación Q2')
+        .attach('file', fileContent, { filename: 'bateria2.pdf', contentType: 'application/pdf' });
+
+      await request(app)
+        .post('/api/documents')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .field('collaboratorId', testCollaborator.id)
+        .field('kind', DocumentKind.PERFIL)
+        .field('descripcion', 'Perfil académico')
+        .attach('file', fileContent, { filename: 'perfil1.pdf', contentType: 'application/pdf' });
+
+      await request(app)
+        .post('/api/documents')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .field('collaboratorId', testCollaborator.id)
+        .field('kind', DocumentKind.PERFIL)
+        .field('descripcion', 'Perfil laboral')
+        .attach('file', fileContent, { filename: 'perfil2.pdf', contentType: 'application/pdf' });
+
+      const response = await request(app)
+        .get(`/api/documents?collaboratorId=${testCollaborator.id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.length).toBe(4);
+      expect(response.body.pagination.total).toBe(4);
+
+      const baterias = response.body.data.filter((d: { kind: string }) => d.kind === DocumentKind.BATERIA);
+      const perfiles = response.body.data.filter((d: { kind: string }) => d.kind === DocumentKind.PERFIL);
+
+      expect(baterias.length).toBe(2);
+      expect(perfiles.length).toBe(2);
+
+      const periodosBateria = baterias.map((d: { periodo?: string }) => d.periodo).sort();
+      expect(periodosBateria).toEqual(['2024-Q1', '2024-Q2']);
+
+      const descripcionesPerfil = perfiles.map((d: { descripcion?: string }) => d.descripcion).sort();
+      expect(descripcionesPerfil).toEqual(['Perfil académico', 'Perfil laboral']);
+    });
+
+    it('debe actualizar un documento sin afectar los demás del mismo tipo', async () => {
+      const fileContent = Buffer.from('Contenido');
+      const res1 = await request(app)
+        .post('/api/documents')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .field('collaboratorId', testCollaborator.id)
+        .field('kind', DocumentKind.BATERIA)
+        .field('descripcion', 'Batería original')
+        .attach('file', fileContent, { filename: 'b1.pdf', contentType: 'application/pdf' });
+
+      await request(app)
+        .post('/api/documents')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .field('collaboratorId', testCollaborator.id)
+        .field('kind', DocumentKind.BATERIA)
+        .field('descripcion', 'Batería sin modificar')
+        .attach('file', fileContent, { filename: 'b2.pdf', contentType: 'application/pdf' });
+
+      const docToUpdateId = res1.body.id;
+
+      const updateResponse = await request(app)
+        .patch(`/api/documents/${docToUpdateId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ descripcion: 'Batería actualizada' });
+
+      expect(updateResponse.status).toBe(200);
+      expect(updateResponse.body.descripcion).toBe('Batería actualizada');
+
+      const listResponse = await request(app)
+        .get(`/api/documents?collaboratorId=${testCollaborator.id}&kind=${DocumentKind.BATERIA}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      const updatedDoc = listResponse.body.data.find((d: { id: string }) => d.id === docToUpdateId);
+      const otherDoc = listResponse.body.data.find((d: { id: string }) => d.id !== docToUpdateId);
+
+      expect(updatedDoc.descripcion).toBe('Batería actualizada');
+      expect(otherDoc.descripcion).toBe('Batería sin modificar');
+    });
+
+    it('debe eliminar un documento sin afectar los demás del mismo tipo', async () => {
+      const fileContent = Buffer.from('Contenido');
+      const res1 = await request(app)
+        .post('/api/documents')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .field('collaboratorId', testCollaborator.id)
+        .field('kind', DocumentKind.PERFIL)
+        .attach('file', fileContent, { filename: 'p1.pdf', contentType: 'application/pdf' });
+
+      const res2 = await request(app)
+        .post('/api/documents')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .field('collaboratorId', testCollaborator.id)
+        .field('kind', DocumentKind.PERFIL)
+        .attach('file', fileContent, { filename: 'p2.pdf', contentType: 'application/pdf' });
+
+      const deleteResponse = await request(app)
+        .delete(`/api/documents/${res1.body.id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(deleteResponse.status).toBe(200);
+
+      const getDeleted = await request(app)
+        .get(`/api/documents/${res1.body.id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(getDeleted.status).toBe(200);
+      expect(getDeleted.body.isActive).toBe(false);
+
+      const getRemaining = await request(app)
+        .get(`/api/documents/${res2.body.id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(getRemaining.status).toBe(200);
+      expect(getRemaining.body.isActive).toBe(true);
+      expect(getRemaining.body.kind).toBe(DocumentKind.PERFIL);
+    });
+
+    it('debe obtener por ID y descargar cada uno de múltiples documentos', async () => {
+      const fileContent = Buffer.from('Contenido para descarga');
+      const res1 = await request(app)
+        .post('/api/documents')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .field('collaboratorId', testCollaborator.id)
+        .field('kind', DocumentKind.BATERIA)
+        .field('descripcion', 'Doc A')
+        .attach('file', fileContent, { filename: 'a.pdf', contentType: 'application/pdf' });
+
+      const res2 = await request(app)
+        .post('/api/documents')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .field('collaboratorId', testCollaborator.id)
+        .field('kind', DocumentKind.BATERIA)
+        .field('descripcion', 'Doc B')
+        .attach('file', fileContent, { filename: 'b.pdf', contentType: 'application/pdf' });
+
+      const get1 = await request(app)
+        .get(`/api/documents/${res1.body.id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      const get2 = await request(app)
+        .get(`/api/documents/${res2.body.id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(get1.status).toBe(200);
+      expect(get2.status).toBe(200);
+      expect(get1.body.id).not.toBe(get2.body.id);
+      expect(get1.body.descripcion).toBe('Doc A');
+      expect(get2.body.descripcion).toBe('Doc B');
+
+      const download1 = await request(app)
+        .get(`/api/documents/${res1.body.id}/download`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      const download2 = await request(app)
+        .get(`/api/documents/${res2.body.id}/download`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(download1.status).toBe(200);
+      expect(download2.status).toBe(200);
+      expect(download1.body.fileName).not.toBe(download2.body.fileName);
+      expect(download1.body.url).toBeTruthy();
+      expect(download2.body.url).toBeTruthy();
+    });
+
+    it('debe filtrar por kind=bateria retornando solo baterías cuando hay múltiples tipos', async () => {
+      const fileContent = Buffer.from('Contenido');
+      await request(app)
+        .post('/api/documents')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .field('collaboratorId', testCollaborator.id)
+        .field('kind', DocumentKind.BATERIA)
+        .attach('file', fileContent, { filename: 'b1.pdf', contentType: 'application/pdf' });
+
+      await request(app)
+        .post('/api/documents')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .field('collaboratorId', testCollaborator.id)
+        .field('kind', DocumentKind.BATERIA)
+        .attach('file', fileContent, { filename: 'b2.pdf', contentType: 'application/pdf' });
+
+      await request(app)
+        .post('/api/documents')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .field('collaboratorId', testCollaborator.id)
+        .field('kind', DocumentKind.PERFIL)
+        .attach('file', fileContent, { filename: 'p1.pdf', contentType: 'application/pdf' });
+
+      const response = await request(app)
+        .get(`/api/documents?collaboratorId=${testCollaborator.id}&kind=${DocumentKind.BATERIA}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.length).toBe(2);
+      expect(response.body.pagination.total).toBe(2);
+      response.body.data.forEach((doc: { kind: string }) => {
+        expect(doc.kind).toBe(DocumentKind.BATERIA);
+      });
+    });
+
+    it('debe filtrar por kind=perfil retornando solo perfiles cuando hay múltiples tipos', async () => {
+      const fileContent = Buffer.from('Contenido');
+      await request(app)
+        .post('/api/documents')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .field('collaboratorId', testCollaborator.id)
+        .field('kind', DocumentKind.BATERIA)
+        .attach('file', fileContent, { filename: 'b1.pdf', contentType: 'application/pdf' });
+
+      await request(app)
+        .post('/api/documents')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .field('collaboratorId', testCollaborator.id)
+        .field('kind', DocumentKind.PERFIL)
+        .attach('file', fileContent, { filename: 'p1.pdf', contentType: 'application/pdf' });
+
+      await request(app)
+        .post('/api/documents')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .field('collaboratorId', testCollaborator.id)
+        .field('kind', DocumentKind.PERFIL)
+        .attach('file', fileContent, { filename: 'p2.pdf', contentType: 'application/pdf' });
+
+      const response = await request(app)
+        .get(`/api/documents?collaboratorId=${testCollaborator.id}&kind=${DocumentKind.PERFIL}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.length).toBe(2);
+      expect(response.body.pagination.total).toBe(2);
+      response.body.data.forEach((doc: { kind: string }) => {
+        expect(doc.kind).toBe(DocumentKind.PERFIL);
+      });
     });
   });
 

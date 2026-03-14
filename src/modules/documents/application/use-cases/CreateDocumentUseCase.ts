@@ -1,9 +1,8 @@
 import { IEventBus, ILogger } from '@shared/domain';
 import { config } from '@shared/config';
-import { CollaboratorDocument, DocumentCreated, DocumentKind } from '../../domain';
+import { CollaboratorDocument, DocumentCreated } from '../../domain';
 import { InvalidFileTypeError } from '../../domain/exceptions/InvalidFileTypeError';
 import { FileSizeExceededError } from '../../domain/exceptions/FileSizeExceededError';
-import { DuplicateDocumentError } from '../../domain/exceptions/DuplicateDocumentError';
 import { IDocumentRepository, IFileStorageService } from '../../domain/ports/output';
 import type { UploadedFile } from '../../domain/ports/output/IFileStorageService';
 import { ICollaboratorRepository } from '@modules/collaborators/domain/ports/output/ICollaboratorRepository';
@@ -88,23 +87,6 @@ export class CreateDocumentUseCase implements ICreateDocumentUseCase {
         uploadedBy,
       });
       throw new InvalidFileTypeError(fileType, allowedTypes);
-    }
-
-    // Validar duplicados para tipos que deben ser únicos (bateria, perfil)
-    // Nota: Esto es una validación opcional, según requerimientos puede ser más flexible
-    if (dto.kind === DocumentKind.BATERIA || dto.kind === DocumentKind.PERFIL) {
-      const exists = await this.documentRepository.existsByCollaboratorAndKind(
-        dto.collaboratorId,
-        dto.kind
-      );
-      if (exists) {
-        this.logger.warn('Intento de crear documento duplicado', {
-          collaboratorId: dto.collaboratorId,
-          kind: dto.kind,
-          uploadedBy,
-        });
-        throw new DuplicateDocumentError(dto.collaboratorId, dto.kind);
-      }
     }
 
     // Generar nombre único para el archivo

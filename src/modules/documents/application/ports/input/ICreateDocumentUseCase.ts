@@ -14,10 +14,9 @@ export interface ICreateDocumentUseCase {
    * @param file - Archivo a subir (Buffer o UploadedFile)
    * @param uploadedBy - ID del usuario que está subiendo el documento
    * @returns El documento creado
-   * @throws DocumentNotFoundError si el colaborador no existe
+   * @throws CollaboratorNotFoundError si el colaborador no existe
    * @throws InvalidFileTypeError si el tipo de archivo no es permitido
    * @throws FileSizeExceededError si el tamaño del archivo excede el límite
-   * @throws DuplicateDocumentError si ya existe un documento del mismo tipo (para tipos únicos)
    */
   execute(
     dto: CreateDocumentDTO,
