@@ -16,6 +16,8 @@ export interface CollaboratorDocumentMongo extends Document {
   periodo?: string;
   descripcion?: string;
   fileName: string;
+  /** Nombre amigable (original del usuario). Opcional para compatibilidad con documentos existentes. */
+  originalFileName?: string;
   fileUrl: string;
   fileSize: number;
   fileType: string;
@@ -59,6 +61,12 @@ const CollaboratorDocumentSchema = new Schema<CollaboratorDocumentMongo>(
     fileName: {
       type: String,
       required: true,
+      trim: true,
+      maxlength: 255,
+    },
+    originalFileName: {
+      type: String,
+      required: false,
       trim: true,
       maxlength: 255,
     },
@@ -132,9 +140,9 @@ CollaboratorDocumentSchema.index(
   }
 );
 
-// Índice de texto para búsqueda full-text en descripción y fileName
+// Índice de texto para búsqueda full-text en descripción, fileName y originalFileName
 CollaboratorDocumentSchema.index(
-  { descripcion: 'text', fileName: 'text' },
+  { descripcion: 'text', fileName: 'text', originalFileName: 'text' },
   { name: 'document_text_search' }
 );
 

@@ -224,6 +224,7 @@ describe('Documents E2E Tests', () => {
       expect(response.body.periodo).toBe('2024-Q1');
       expect(response.body.descripcion).toBe('Batería de pruebas');
       expect(response.body.fileName).toContain('bateria');
+      expect(response.body.originalFileName).toBe('bateria-test.pdf');
       expect(response.body.fileUrl).toBeTruthy();
       expect(response.body.fileSize).toBe(fileContent.length);
       expect(response.body.fileType).toBe('application/pdf');
@@ -940,6 +941,20 @@ describe('Documents E2E Tests', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.descripcion).toBe('Solo actualizar descripción');
+    });
+
+    it('debe actualizar originalFileName y descripcion', async () => {
+      const response = await request(app)
+        .patch(`/api/documents/${createdDocumentId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          originalFileName: 'Mi documento renombrado.pdf',
+          descripcion: 'Descripción editada',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.originalFileName).toBe('Mi documento renombrado.pdf');
+      expect(response.body.descripcion).toBe('Descripción editada');
     });
   });
 

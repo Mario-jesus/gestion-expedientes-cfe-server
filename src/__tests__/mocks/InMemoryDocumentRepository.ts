@@ -95,6 +95,7 @@ export class InMemoryDocumentRepository implements IDocumentRepository {
         periodo: document.periodo,
         descripcion: document.descripcion,
         fileName: document.fileName,
+        originalFileName: document.originalFileName,
         fileUrl: document.fileUrl,
         fileSize: document.fileSize,
         fileType: document.fileType,

@@ -99,7 +99,7 @@ export class CreateDocumentUseCase implements ICreateDocumentUseCase {
     const folder = 'documents'; // Carpeta para documentos de colaboradores
     const { fileUrl } = await this.fileStorageService.saveFile(fileBuffer, fileName, folder);
 
-    // Crear la entidad CollaboratorDocument
+    // Crear la entidad CollaboratorDocument (originalFileName = nombre que subió el usuario)
     const document = CollaboratorDocument.create(
       {
         collaboratorId: dto.collaboratorId,
@@ -107,6 +107,7 @@ export class CreateDocumentUseCase implements ICreateDocumentUseCase {
         periodo: dto.periodo,
         descripcion: dto.descripcion,
         fileName,
+        originalFileName: originalName || undefined,
         fileUrl,
         fileSize,
         fileType,

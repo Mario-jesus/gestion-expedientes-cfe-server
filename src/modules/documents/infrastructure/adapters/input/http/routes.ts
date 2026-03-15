@@ -280,7 +280,7 @@ export function createDocumentRoutes(
    *               $ref: '#/components/schemas/Error'
    *   put:
    *     summary: Actualizar documento completo
-   *     description: Actualiza los metadatos de un documento. No se puede cambiar el archivo, solo metadatos (periodo, descripcion, documentTypeId, isActive).
+   *     description: Actualiza los metadatos de un documento. No se puede cambiar el archivo, solo metadatos (periodo, descripcion, originalFileName, documentTypeId, isActive).
    *     tags: [Documentos]
    *     security:
    *       - bearerAuth: []
@@ -304,6 +304,9 @@ export function createDocumentRoutes(
    *               descripcion:
    *                 type: string
    *                 description: Descripción del documento
+   *               originalFileName:
+   *                 type: string
+   *                 description: Nombre amigable del archivo (editable por el usuario)
    *               documentTypeId:
    *                 type: string
    *                 description: ID del tipo de documento (solo para kind 'cchl')
@@ -368,6 +371,9 @@ export function createDocumentRoutes(
    *                 type: string
    *               descripcion:
    *                 type: string
+   *               originalFileName:
+   *                 type: string
+   *                 description: Nombre amigable del archivo (editable)
    *               documentTypeId:
    *                 type: string
    *               isActive:

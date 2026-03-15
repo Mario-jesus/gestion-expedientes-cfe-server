@@ -9,7 +9,10 @@ export interface CollaboratorDocumentProps {
   kind: DocumentKind;
   periodo?: string | undefined;
   descripcion?: string | undefined;
+  /** Nombre interno del archivo en disco (ej: perfil_1773524211130_5f6fe9d9.pdf) */
   fileName: string;
+  /** Nombre original/amigable que el usuario subió o editó (opcional, para documentos existentes puede ser null) */
+  originalFileName?: string | undefined;
   fileUrl: string;
   fileSize: number;
   fileType: string;
@@ -46,6 +49,7 @@ export class CollaboratorDocument extends Entity<CollaboratorDocumentProps> {
       periodo?: string | undefined;
       descripcion?: string | undefined;
       fileName: string;
+      originalFileName?: string | undefined;
       fileUrl: string;
       fileSize: number;
       fileType: string;
@@ -105,6 +109,7 @@ export class CollaboratorDocument extends Entity<CollaboratorDocumentProps> {
       periodo: props.periodo?.trim() || undefined,
       descripcion: props.descripcion?.trim() || undefined,
       fileName: props.fileName.trim(),
+      originalFileName: props.originalFileName?.trim() || undefined,
       fileUrl: props.fileUrl.trim(),
       fileSize: props.fileSize,
       fileType: props.fileType.trim(),
@@ -128,6 +133,7 @@ export class CollaboratorDocument extends Entity<CollaboratorDocumentProps> {
       periodo?: string | undefined;
       descripcion?: string | undefined;
       fileName: string;
+      originalFileName?: string | undefined;
       fileUrl: string;
       fileSize: number;
       fileType: string;
@@ -146,6 +152,7 @@ export class CollaboratorDocument extends Entity<CollaboratorDocumentProps> {
       periodo: props.periodo || undefined,
       descripcion: props.descripcion || undefined,
       fileName: props.fileName,
+      originalFileName: props.originalFileName || undefined,
       fileUrl: props.fileUrl,
       fileSize: props.fileSize,
       fileType: props.fileType,
@@ -180,6 +187,11 @@ export class CollaboratorDocument extends Entity<CollaboratorDocumentProps> {
 
   get fileName(): string {
     return this.props.fileName;
+  }
+
+  /** Nombre amigable para mostrar (original del usuario o editado). Si no existe, usar fileName. */
+  get originalFileName(): string | undefined {
+    return this.props.originalFileName;
   }
 
   get fileUrl(): string {
@@ -253,6 +265,14 @@ export class CollaboratorDocument extends Entity<CollaboratorDocumentProps> {
   }
 
   /**
+   * Actualiza el nombre amigable del archivo (el que ve el usuario)
+   */
+  updateOriginalFileName(originalFileName: string | undefined): void {
+    this.props.originalFileName = originalFileName?.trim() || undefined;
+    this.markAsUpdated();
+  }
+
+  /**
    * Actualiza el documentTypeId (solo para kind: 'cchl')
    */
   updateDocumentTypeId(documentTypeId: string | undefined): void {
@@ -284,6 +304,7 @@ export class CollaboratorDocument extends Entity<CollaboratorDocumentProps> {
     periodo?: string;
     descripcion?: string;
     fileName: string;
+    originalFileName?: string;
     fileUrl: string;
     fileSize: number;
     fileType: string;
@@ -301,6 +322,7 @@ export class CollaboratorDocument extends Entity<CollaboratorDocumentProps> {
       periodo?: string;
       descripcion?: string;
       fileName: string;
+      originalFileName?: string;
       fileUrl: string;
       fileSize: number;
       fileType: string;
@@ -333,6 +355,10 @@ export class CollaboratorDocument extends Entity<CollaboratorDocumentProps> {
       result.descripcion = this.props.descripcion;
     }
 
+    if (this.props.originalFileName !== undefined) {
+      result.originalFileName = this.props.originalFileName;
+    }
+
     if (this.props.documentTypeId !== undefined) {
       result.documentTypeId = this.props.documentTypeId;
     }
@@ -350,6 +376,8 @@ export class CollaboratorDocument extends Entity<CollaboratorDocumentProps> {
     periodo?: string;
     descripcion?: string;
     fileName: string;
+    /** Nombre amigable para mostrar. Si null, el frontend debe usar fileName. */
+    originalFileName?: string | null;
     fileUrl: string;
     fileSize: number;
     fileType: string;

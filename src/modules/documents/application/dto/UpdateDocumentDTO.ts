@@ -7,6 +7,7 @@
 export interface UpdateDocumentDTO {
   periodo?: string;
   descripcion?: string;
+  originalFileName?: string; // Nombre amigable editable por el usuario
   documentTypeId?: string; // Solo para kind: 'cchl'
   isActive?: boolean;
 }

@@ -232,6 +232,7 @@ export class DocumentController {
       const dto: UpdateDocumentDTO = {
         periodo: req.body.periodo,
         descripcion: req.body.descripcion,
+        originalFileName: req.body.originalFileName,
         documentTypeId: req.body.documentTypeId,
         isActive: req.body.isActive,
       };
@@ -257,6 +258,7 @@ export class DocumentController {
       const dto: UpdateDocumentDTO = {
         ...(req.body.periodo !== undefined && { periodo: req.body.periodo }),
         ...(req.body.descripcion !== undefined && { descripcion: req.body.descripcion }),
+        ...(req.body.originalFileName !== undefined && { originalFileName: req.body.originalFileName }),
         ...(req.body.documentTypeId !== undefined && { documentTypeId: req.body.documentTypeId }),
         ...(req.body.isActive !== undefined && { isActive: req.body.isActive }),
       };

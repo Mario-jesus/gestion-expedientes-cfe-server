@@ -60,6 +60,11 @@ export class UpdateDocumentUseCase implements IUpdateDocumentUseCase {
       updatedFields.push('descripcion');
     }
 
+    if (dto.originalFileName !== undefined) {
+      existingDocument.updateOriginalFileName(dto.originalFileName);
+      updatedFields.push('originalFileName');
+    }
+
     if (dto.documentTypeId !== undefined) {
       existingDocument.updateDocumentTypeId(dto.documentTypeId);
       updatedFields.push('documentTypeId');
